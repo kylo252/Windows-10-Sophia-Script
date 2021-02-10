@@ -1,4 +1,4 @@
-<#
+﻿<#
 	.SYNOPSIS
 	"Windows 10 Sophia Script" is a PowerShell module for Windows 10 fine-tuning and automating the routine tasks
 
@@ -75,7 +75,7 @@ function Checkings
 
 				Start-Sleep -Seconds 5
 
-				Start-Process -FilePath "https://github.com/farag2/Windows-10-Sophia-Script/releases"
+				Start-Process -FilePath "https://github.com/farag2/Windows-10-Sophia-Script/releases/latest"
 				exit
 			}
 		}
@@ -89,16 +89,6 @@ function Checkings
 	# Unblock all files in the folder by removing the Zone.Identifier alternate data stream with a value of "3"
 	# Разблокировать все файлы в папке, удалив альтернативный потоки данных Zone.Identifier со значением "3"
 	Get-ChildItem -Path $PSScriptRoot -Recurse -Force | Unblock-File -Confirm:$false
-
-	# Import PowerShell 5.1 modules
-	# Импорт модулей PowerShell 5.1
-	switch ($PSVersionTable.PSVersion.Major)
-	{
-		"7"
-		{
-			Import-Module -Name Microsoft.PowerShell.Management, PackageManagement, Appx -UseWindowsPowerShell
-		}
-	}
 
 	# Turn off Controlled folder access to let the script proceed
 	# Отключить контролируемый доступ к папкам
@@ -3831,10 +3821,6 @@ function TempFolder
 				New-Item -Path $env:SystemDrive\Temp -ItemType Directory -Force
 			}
 
-			# Copy all imported module folders to the new temp folder. Only when using the function within PowerShell 7.x
-			# Скопировать все папки импортированных модулей в новое расположение временных файлов. Только при использовании функции в рамках PowerShell 7.x
-			Get-ChildItem -Path $env:LOCALAPPDATA\Temp -Force | Where-Object -FilterScript {$_.Name -like "*remoteIpMoProxy*"} | ForEach-Object -Process {Copy-Item $_.FullName -Destination $env:SystemDrive\Temp -Recurse -Force}
-
 			Remove-Item -Path $env:SystemRoot\Temp -Recurse -Force -ErrorAction Ignore
 			Get-Item -Path $env:LOCALAPPDATA\Temp -Force -ErrorAction Ignore | Where-Object -FilterScript {$_.LinkType -ne "SymbolicLink"} | Remove-Item -Recurse -Force -ErrorAction Ignore
 
@@ -7295,15 +7281,15 @@ function RunCMDShortcut
 	{
 		"Elevated"
 		{
-			[byte[]]$bytes = Get-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -AsByteStream -Raw
+			[byte[]]$bytes = Get-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Encoding Byte -Raw
 			$bytes[0x15] = $bytes[0x15] -bor 0x20
-			Set-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Value $bytes -AsByteStream -Force
+			Set-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Value $bytes -Encoding Byte -Force
 		}
 		"NonElevated"
 		{
-			[byte[]]$bytes = Get-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -AsByteStream -Raw
+			[byte[]]$bytes = Get-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Encoding Byte -Raw
 			$bytes[0x15] = $bytes[0x15] -bxor 0x20
-			Set-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Value $bytes -AsByteStream -Force
+			Set-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Value $bytes -Encoding Byte -Force
 		}
 	}
 }
@@ -7325,7 +7311,7 @@ function UnpinAllStartTiles
 	$StartMenuLayoutPath = "$env:TEMP\StartMenuLayout.xml"
 	# Saving StartMenuLayout.xml in UTF-8 encoding
 	# Сохраняем StartMenuLayout.xml в кодировке UTF-8
-	Set-Content -Path $StartMenuLayoutPath -Value $StartMenuLayout -Encoding utf8 -Force
+	Set-Content -Path $StartMenuLayoutPath -Value $StartMenuLayout -Force
 
 	# Temporarily disable changing the Start menu layout
 	# Временно выключаем возможность редактировать начальный экран меню "Пуск"
@@ -7515,10 +7501,6 @@ function UninstallUWPApps
 	Add-Type -AssemblyName PresentationCore, PresentationFramework
 
 	#region Variables
-	# ArrayList containing the UWP apps to remove
-	# Массив имен UWP-приложений для удаления
-	$AppxPackages = New-Object -TypeName System.Collections.ArrayList($null)
-
 	# List of UWP apps that won't be recommended for removal
 	# UWP-приложения, которые не будут отмечены на удаление по умолчанию
 	$UncheckedAppxPackages = @(
@@ -7609,21 +7591,29 @@ function UninstallUWPApps
 		MinHeight="450" MinWidth="400"
 		SizeToContent="Width" WindowStartupLocation="CenterScreen"
 		TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
-		FontFamily="Segoe UI" FontSize="12" ShowInTaskbar="False">
+		FontFamily="Candara" FontSize="16" ShowInTaskbar="False">
 		<Window.Resources>
 			<Style TargetType="StackPanel">
 				<Setter Property="Orientation" Value="Horizontal"/>
+				<Setter Property="Grid.Column" Value="1"/>
 			</Style>
 			<Style TargetType="CheckBox">
-				<Setter Property="Margin" Value="10, 10, 5, 10"/>
+				<Setter Property="Margin" Value="10, 13, 10, 10"/>
 				<Setter Property="IsChecked" Value="True"/>
 			</Style>
 			<Style TargetType="TextBlock">
-				<Setter Property="Margin" Value="5, 10, 10, 10"/>
+				<Setter Property="Margin" Value="0, 10, 10, 10"/>
+				<Setter Property="Margin" Value="0, 10, 10, 10"/>
 			</Style>
 			<Style TargetType="Button">
 				<Setter Property="Margin" Value="20"/>
 				<Setter Property="Padding" Value="10"/>
+				<Setter Property="IsEnabled" Value="True"/>
+			</Style>
+			<Style TargetType="ScrollViewer">
+			<Setter Property="Grid.Row" Value="1"/>
+			<Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+			<Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
 			</Style>
 		</Window.Resources>
 		<Grid>
@@ -7637,68 +7627,78 @@ function UninstallUWPApps
 					<ColumnDefinition Width="*"/>
 					<ColumnDefinition Width="Auto"/>
 				</Grid.ColumnDefinitions>
-				<StackPanel Grid.Column="1" Orientation="Horizontal">
-					<CheckBox Name="CheckboxRemoveAll" IsChecked="False"/>
-					<TextBlock Name="TextblockRemoveAll"/>
+				<StackPanel Name="PanelRemoveForAll">
+					<TextBlock Name="TextBlockRemoveForAll" Margin="0, 10, 0, 10"/>
+					<CheckBox Name="CheckBoxRemoveForAll" IsChecked="False"/>
 				</StackPanel>
 			</Grid>
-			<ScrollViewer Name="Scroll" Grid.Row="1"
-				HorizontalScrollBarVisibility="Disabled"
-				VerticalScrollBarVisibility="Auto">
+			<ScrollViewer>
 				<StackPanel Name="PanelContainer" Orientation="Vertical"/>
 			</ScrollViewer>
-			<Button Name="Button" Grid.Row="2"/>
+			<Button Name="ButtonUninstall" Grid.Row="2"/>
 		</Grid>
 	</Window>
 	'
 	#endregion XAML Markup
 
-	$Reader = (New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML)
-	$Form = [Windows.Markup.XamlReader]::Load($Reader)
-	$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
-		Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name) -Scope Global
-	}
-
 	#region Functions
-	function Get-CheckboxClicked
+	function Get-AppxBundle
 	{
 		[CmdletBinding()]
 		param
 		(
 			[Parameter(
-				Mandatory = $true,
-				ValueFromPipeline = $true
+				Mandatory = $false,
+				ParameterSetName = "AllUsers",
+				Position = 0
 			)]
-			[ValidateNotNull()]
-			$CheckBox
+			[bool]
+			$AllUsers = $false
 		)
 
-		$AppxName = $CheckBox.Parent.Children[1].Text
-		if ($CheckBox.IsChecked)
-		{
-			[void]$AppxPackages.Add($AppxName)
-		}
-		else
-		{
-			[void]$AppxPackages.Remove($AppxName)
-		}
-		if ($AppxPackages.Count -gt 0)
-		{
-			$Button.IsEnabled = $true
-		}
-		else
-		{
-			$Button.IsEnabled = $false
-		}
-	}
-
-	function UninstallButton
-	{
 		Write-Verbose -Message $Localization.Patient -Verbose
 
+		[Windows.Management.Deployment.PackageManager, Windows.Web, ContentType = WindowsRuntime]::new().FindPackages() | Select-Object -ExpandProperty Id -Property DisplayName | Where-Object -FilterScript {
+			($_.Name -in (Get-AppxPackage -PackageTypeFilter Bundle -AllUsers:$AllUsers).Name) -and ($_.Name -notin $ExcludedAppxPackages) -and ($null -ne $_.DisplayName)} | ForEach-Object -Process {
+				$Properties = @{
+					[string]"DisplayName" = $_.DisplayName
+					[string]"FullName"    = $_.FullName
+					[string]"Name"        = $_.Name
+				}
+				return New-Object -TypeName PSObject -Property $Properties
+			}
+	}
+
+	function CheckBoxRemoveForAllClick
+	{
+		$PanelContainer.Children.RemoveRange(0, $PanelContainer.Children.Count)
+		Get-AppxBundle -AllUsers $CheckBoxRemoveForAll.IsChecked | Add-FormControls
+	}
+
+	function ButtonUninstallClick
+	{
+		$AppxPackages = New-Object -TypeName System.Collections.ArrayList($null)
+
+		for
+		(
+			$i = 0
+			$i -lt [System.Windows.Media.VisualTreeHelper]::GetChildrenCount($PanelContainer)
+			$i++
+		)
+		{
+			$CheckBox = [System.Windows.Media.VisualTreeHelper]::GetChild($PanelContainer, $i)
+
+			if ($CheckBox.Children[0].IsChecked)
+			{
+				[void]$AppxPackages.Add($CheckBox.Children[0].Tag)
+			}
+		}
+
 		[void]$Window.Close()
+
 		$OFS = "|"
-		if ($CheckboxRemoveAll.IsChecked)
+
+		if ($CheckboxRemoveForAll.IsChecked)
 		{
 			Get-AppxPackage -PackageTypeFilter Bundle -AllUsers | Where-Object -FilterScript {$_.Name -cmatch $AppxPackages} | Remove-AppxPackage -AllUsers -Verbose
 		}
@@ -7706,10 +7706,11 @@ function UninstallUWPApps
 		{
 			Get-AppxPackage -PackageTypeFilter Bundle | Where-Object -FilterScript {$_.Name -cmatch $AppxPackages} | Remove-AppxPackage -Verbose
 		}
+
 		$OFS = " "
 	}
 
-	function Add-AppxControl
+	function Add-FormControls
 	{
 		[CmdletBinding()]
 		param
@@ -7719,65 +7720,61 @@ function UninstallUWPApps
 				ValueFromPipeline = $true
 			)]
 			[ValidateNotNull()]
-			[string]
-			$AppxName
+			[PSCustomObject[]]
+			$Controls
 		)
 
-		$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
-		$CheckBox.Add_Click({Get-CheckboxClicked -CheckBox $_.Source})
-
-		$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
-		$TextBlock.Text = $AppxName
-
-		$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
-		[void]$StackPanel.Children.Add($CheckBox)
-		[void]$StackPanel.Children.Add($TextBlock)
-
-		[void]$PanelContainer.Children.Add($StackPanel)
-
-		if ($UncheckedAppxPackages.Contains($AppxName))
+		process
 		{
-			$CheckBox.IsChecked = $false
-			# Exit function, item is not checked
-			# Выход из функции, если элемент не выделен
-			return
-		}
+			foreach ($control in $Controls)
+			{
+				$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
+				$CheckBox.Tag = $control.Name
 
-		# If package checked, add to the array list to uninstall
-		# Если пакет выделен, то добавить в массив для удаления
-		[void]$AppxPackages.Add($AppxName)
+				$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
+				$TextBlock.Text = $control.DisplayName
+
+				$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
+				[void]$StackPanel.Children.Add($CheckBox)
+				[void]$StackPanel.Children.Add($TextBlock)
+				[void]$PanelContainer.Children.Add($StackPanel)
+
+				if ($UncheckedAppxPackages.Contains($control.Name))
+				{
+					$CheckBox.IsChecked = $false
+				}
+				else
+				{
+					$CheckBox.IsChecked = $true
+				}
+			}
+		}
 	}
 	#endregion Functions
 
-	#region Events Handlers
-	# Window Loaded Event
-	$Window.Add_Loaded({
-		$OFS = "|"
-		Get-AppxPackage -PackageTypeFilter Bundle -AllUsers | Where-Object -FilterScript {$_.Name -cnotmatch $ExcludedAppxPackages} | ForEach-Object -Process {
-			Add-AppxControl -AppxName $_.Name
-		}
-		$OFS = " "
-	})
+	Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
 
-	# Button Click Event
-	$Button.Add_Click({UninstallButton})
-	#endregion Events Handlers
+	$Reader = (New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML)
+	$Form = [Windows.Markup.XamlReader]::Load($Reader)
+	$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
+		Set-Variable -Name ($_.Name)-Value $Form.FindName($_.Name)
+	}
 
-	if (Get-AppxPackage -PackageTypeFilter Bundle -AllUsers | Where-Object -FilterScript {$_.Name -cnotmatch ($ExcludedAppxPackages -join "|")})
+	Get-AppxBundle | Add-FormControls
+	$Window.Title = $Localization.UninstallUWPTitle
+	$ButtonUninstall.Content = $Localization.Uninstall
+	$ButtonUninstall.Add_Click({ButtonUninstallClick})
+	$CheckBoxRemoveForAll.Add_Click({CheckBoxRemoveForAllClick})
+	$TextBlockRemoveForAll.Text = $Localization.UninstallUWPForAll
+
+	if ($PanelContainer.Children.Count -eq 0)
 	{
-		Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
-
-		$TextblockRemoveAll.Text = $Localization.UninstallUWPForAll
-		$Window.Title = $Localization.UninstallUWPTitle
-		$Button.Content = $Localization.Uninstall
-
-		# Display the dialog box
-		# Отобразить диалоговое окно
-		$Form.ShowDialog() | Out-Null
+		[void]$Form.Close()
+		Write-Verbose -Message $Localization.NoData -Verbose
 	}
 	else
 	{
-		Write-Verbose -Message $Localization.NoData -Verbose
+		[void]$Form.ShowDialog()
 	}
 }
 
@@ -8349,7 +8346,7 @@ function SoftwareDistributionTask
 Get-ChildItem -Path $env:SystemRoot\SoftwareDistribution\Download -Recurse -Force | Remove-Item -Recurse -Force
 "@
 			$Action = New-ScheduledTaskAction -Execute powershell.exe -Argument $Argument
-			$Trigger = New-ScheduledTaskTrigger -Daily -DaysInterval 90 -At 9am
+			$Trigger = New-JobTrigger -Weekly -WeeksInterval 4 -DaysOfWeek Thursday -At 9am
 			$Settings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable
 			$Principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -RunLevel Highest
 			$Description = $Localization.FolderTaskDescription -f "$env:SystemRoot\SoftwareDistribution\Download"
@@ -9032,7 +9029,7 @@ function EventViewerCustomView
 
 			# Saving ProcessCreation.xml in UTF-8 encoding
 			# Сохраняем ProcessCreation.xml в кодировке UTF-8
-			Set-Content -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Value $XML -Encoding utf8 -Force
+			Set-Content -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Value $XML -Force
 		}
 	}
 }

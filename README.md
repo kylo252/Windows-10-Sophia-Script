@@ -1,25 +1,28 @@
-<div align="center">
-	
-  <img alt="Sophia Script logo" src="./img/Sophia.png" width="150px"/>
-  
-  <h1>Sophia Script</h1>
+<img src="./img/Sophia.png" alt="Sophia Script" width='350' align="right">
+
+# Sophia Script
 
 **A PowerShell module for Windows 10 fine-tuning and automating the routine tasks** :trophy:
 
-![PowerShell](https://img.shields.io/badge/PowerShell%205.1%20&%207.1-Ready-blue.svg?style=flat)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b1ce4ce852f148a88c47ea33ad172044)](https://www.codacy.com/manual/farag2/Windows-10-Sophia-Script)
-[![Github stats](https://img.shields.io/github/downloads/farag2/Windows-10-Setup-Script/total.svg?label=downloads%20%28since%20May%202020%29)](https://github.com/farag2/Windows-10-Sophia-Script/releases)
-[![latest version](https://img.shields.io/github/v/release/farag2/Windows-10-Sophia-Script)](https://github.com/farag2/Windows-10-Sophia-Script/releases)
-![Made with Love](https://img.shields.io/badge/Made%20with-%E2%9D%A4-red.svg?colorB=11a9f7)
-[![Twitter](https://img.shields.io/badge/Logo%20by-teahead-blue?style=flat&logo=Twitter)](https://twitter.com/tea_head_)
+<p align="left">
+  <img src="https://github.com/farag2/Windows-10-Sophia-Script/workflows/Build/badge.svg">
+  <img src="https://img.shields.io/badge/PowerShell%205.1%20&%207.1-Ready-blue.svg?color=5391FE&style=flat&logo=powershell">
+  <a href="https://www.codacy.com/gh/farag2/Windows-10-Sophia-Script"><img src="https://app.codacy.com/project/badge/Grade/b1ce4ce852f148a88c47ea33ad172044"></a>
+
+  <a href="https://github.com/farag2/Windows-10-Sophia-Script/releases"><img src="https://img.shields.io/github/downloads/farag2/Windows-10-Setup-Script/total.svg?label=downloads%20%28since%20May%202020%29"></a>
+  <a href="https://github.com/farag2/Windows-10-Sophia-Script/releases"><img src="https://img.shields.io/github/v/release/farag2/Windows-10-Sophia-Script"></a>
+  <img src="https://img.shields.io/badge/Made%20with-%E2%9D%A4-red.svg?colorB=11a9f7">
+
+  <a href="https://twitter.com/tea_head_"><img src="https://img.shields.io/badge/Logo%20by-teahead-blue?style=flat&logo=Twitter"></a>
+</p>
 
 Available in: <img src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Flag_of_the_United_Kingdom.svg" height="11px"/> <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People's_Republic_of_China.svg" height="11px"/> <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Flag_of_Germany.svg" height="11px"/>
 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg" height="11px"/> <img src="https://upload.wikimedia.org/wikipedia/commons/0/03/Flag_of_Italy.svg" height="11px"/> <img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Flag_of_Russia.svg" height="11px"/> <img src="https://upload.wikimedia.org/wikipedia/commons/4/49/Flag_of_Ukraine.svg" height="11px"/> <img src="https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Turkey.svg" height="11px"/> <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" height="11px"/>
 
 [![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Q5Q51QUJC)
-</div>
 
-<hr>
+***
+
 <p align="center">
 	&bull;
 	<a href="https://github.com/farag2/Windows-10-Sophia-Script/releases"><b>DOWNLOAD</b></a>
@@ -35,8 +38,11 @@ Available in: <img src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Flag
 	<a href="#how-to-translate">How to translate</a>
 	&bull;
 	<a href="#supported-windows-10-versions">Supported Windows 10 versions</a>
+	&bull;
+	<a href="https://github.com/farag2/Windows-10-Sophia-Script/blob/master/CHANGELOG.md">Complete Changelog</a>
 </p>
-<hr>
+
+***
 
 <table>
 	<tr>
@@ -87,9 +93,9 @@ Available in: <img src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Flag
 
 |Version|Code name|   Marketing name   |Build | Arch |      Editions     | Script version |
 |:-----:|:-------:|:------------------:|:----:|:----:|:-----------------:|:--------------:|
-| 2009  |  20H2   |October 2020 Update |19042 |  x64 |Home/Pro/Enterprise|[5.3.1](https://github.com/farag2/Windows-10-Sophia-Script/releases/latest)|
-| 2004  |  20H1   |   May 2020 Update  |19041 |  x64 |Home/Pro/Enterprise|[5.3.1](https://github.com/farag2/Windows-10-Sophia-Script/releases/latest)|
-| 1809  |         |LTSC Enterprise 2019|17763 |  x64 |   Enterprise      |[5.0](https://github.com/farag2/Windows-10-Sophia-Script/releases/latest)|
+| 2009  |  20H2   |October 2020 Update |19042 |  x64 |Home/Pro/Enterprise|[5.4.0.1](https://github.com/farag2/Windows-10-Sophia-Script/releases/latest)|
+| 2004  |  20H1   |   May 2020 Update  |19041 |  x64 |Home/Pro/Enterprise|[5.4.0.1](https://github.com/farag2/Windows-10-Sophia-Script/releases/latest)|
+| 1809  |         |LTSC Enterprise 2019|17763 |  x64 |   Enterprise      |[5.0.3](https://github.com/farag2/Windows-10-Sophia-Script/releases/latest)|
 
 ## Screenshots
 
@@ -97,8 +103,10 @@ Available in: <img src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Flag
   <summary>Screenshots</summary>
   
 ![Image](https://i.imgur.com/5up2HrJ.png)
-![Image](https://i.imgur.com/AXY12aJ.png)
-![Image](https://i.imgur.com/kUONPI2.png)
+![Image](https://i.imgur.com/Fuf4CaD.png)
+![Image](https://i.imgur.com/qZhFqr3.png)
+![Image](https://i.imgur.com/2C3NOke.png)
+
 ![Image](https://i.imgur.com/DpV0UJw.png)
 </details>
 
@@ -122,15 +130,16 @@ Available in: <img src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Flag
   * "Music";
   * "Pictures"
   * "Videos.
-* Uninstall UWP apps from all accounts with exception apps list with pop-up form written in [WPF](#Screenshots);
-* Disable Windows features;
+* Uninstall UWP apps displaying friendly packages names with pop-up form written in [WPF](#Screenshots);
+  * Dynamically generated UWP apps list installed for all users
+* Disable Windows features displaying friendly packages names with pop-up form written in [WPF](#Screenshots);
+* Uninstall Windows capabilities displaying friendly packages names with pop-up form written in [WPF](#Screenshots);
 * Install and setup WSL
-* Remove Windows capabilities with pop-up form written in [WPF](#Screenshots);
 * Create a Windows cleaning up task in the Task Scheduler;
   * A toast notification will pop up a minute before the task [starts](#Screenshots)
 * Create tasks in the Task Scheduler to clear
-  * ```%SystemRoot%\SoftwareDistribution\Download```
-  * ```%TEMP%```
+  * `%SystemRoot%\SoftwareDistribution\Download`
+  * `%TEMP%`
 * Unpin all Start menu tiles;
 * Pin shortcuts to Start menu using [syspin.exe](http://www.technosys.net/products/utils/pintotaskbar)
   * Three shortcuts are preconfigured to be pinned: Control Panel, "old style" Devices and Printers, and Command Prompt
@@ -143,14 +152,12 @@ Available in: <img src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Flag
 
 ## Usage
 
-To run the script:
-
 * Download [up-to-date version](https://github.com/farag2/Windows-10-Sophia-Script/releases/latest);
 * Expand the archive;
 * Open folder with the expanded archive;
-* Look through the ```Sophia.ps1``` file to configure functions that you want to be ran;
-  * Comment out function with the ```#``` char if you don't want it to be ran;
-  * Uncomment function by removing the ```#``` char if you want it to be ran.
+* Look through the `Sophia.ps1` file to configure functions that you want to be run;
+  * Comment out function with the `#` char if you don't want it to be run;
+  * Uncomment function by removing the `#` char if you want it to be run.
 * Click "File" in File Explorer, hover over "Open Windows PowerShell", and select "Open Windows PowerShell as Administrator" [(how-to with screenshots)](https://www.howtogeek.com/662611/9-ways-to-open-powershell-in-windows-10/);
 * Set execution policy to be able to run scripts only in the current PowerShell session
 
@@ -158,8 +165,18 @@ To run the script:
   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
   ```
 
-* Type ```.\Sophia.ps1```
-* Press Enter
+* Type `.\Sophia.ps1` to run the whole preset file;
+* Press <kbd>Enter</kbd>.
+
+***
+
+How to run the specific function(s) (example):
+
+```powershell
+.\Sophia.ps1 -Functions CreateRestorePoint, "ScheduledTasks -Disable", "WindowsCapabilities -Uninstall"
+```
+* Regardless of the functions entered as an argument the `Checkings` function will be executed first, and the `Refresh` and `Errors` functions will be executed at the end;
+* The quotation marks required.
 
 ## How to translate
 
@@ -178,7 +195,8 @@ To run the script:
 * [rutracker](https://rutracker.org/forum/viewtopic.php?t=5996011)
 * [My Digital Life](https://forums.mydigitallife.net/threads/powershell-windows-10-sophia-script.81675/)
 * [Reddit (archived)](https://www.reddit.com/r/PowerShell/comments/go2n5v/powershell_script_setup_windows_10/)
+  * PM [me](https://www.reddit.com/user/farag2/)
 
 ## SophiApp Community Edition (C# + WPF)
 
-Internal build by [oz-zo](https://github.com/oz-zo) being compiled in the [SophiApp](https://github.com/farag2/SophiApp) repository every Saturday within Github Actions
+[SophiApp](https://github.com/farag2/SophiApp) written by [oz-zo](https://github.com/oz-zo) being compiled every Saturday within Github Actions for internal purposes only.

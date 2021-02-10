@@ -1,15 +1,15 @@
-<#
+﻿<#
 	.SYNOPSIS
-	"Windows 10 Sophia Script" is a PowerShell module for Windows 10 fine-tuning and automating the routine tasks
+	"Windows 10 Sophia Script" (LTSC version) is a PowerShell module for Windows 10 fine-tuning and automating the routine tasks
 
-	Version: v5.4
+	Version: v5.0.3
 	Date: 04.02.2021
-	Copyright (c) 2015–2021 farag & oZ-Zo
+	Copyright (c) 2021 farag & oZ-Zo
 
 	Thanks to all https://forum.ru-board.com members involved
 
 	.DESCRIPTION
-	Supported Windows 10 versions: 2004 (20H1)/20H2 (2009), 19041/19042, Home/Pro/Enterprise, x64
+	Supported Windows 10 versions: 1809 Enterprise LTSC, 17763 build, x64
 
 	Running the script is best done on a fresh install because running it on wrong tweaked system may result in errors occurring
 
@@ -52,7 +52,7 @@ function Checkings
 
 	# Detect the OS build version
 	# Определить номер билда ОС
-	switch ((Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber -ge 19041)
+	switch ((Get-CimInstance -ClassName Win32_OperatingSystem).BuildNumber -eq 17763)
 	{
 		$false
 		{
@@ -65,9 +65,13 @@ function Checkings
 	# Проверка: используется ли последняя версия модуля
 	try
 	{
-		$LatestRelease = ((Invoke-RestMethod -Uri "https://api.github.com/repos/farag2/Windows-10-Sophia-Script/releases") | Where-Object -FilterScript {$_.prerelease -eq $false}).tag_name.Replace("v","")[0]
+		$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
+		Invoke-WebRequest -Uri "https://raw.githubusercontent.com/farag2/Windows-10-Sophia-Script/master/Sophia/LTSC/Sophia.psd1" -OutFile $DownloadsFolder\Manifest.psd1 -UseBasicParsing
+		$LatestRelease = (Import-PowerShellDataFile -Path $DownloadsFolder\Manifest.psd1).ModuleVersion
 		$CurrentRelease = (Get-Module -Name Sophia).Version.ToString()
-		switch ([System.Version]$LatestRelease -gt [System.Version]$CurrentRelease)
+		Remove-Item -Path $DownloadsFolder\Manifest.psd1 -Force
+
+		switch ([System.Version]$LatestRelease -lt [System.Version]$CurrentRelease)
 		{
 			$true
 			{
@@ -75,7 +79,7 @@ function Checkings
 
 				Start-Sleep -Seconds 5
 
-				Start-Process -FilePath "https://github.com/farag2/Windows-10-Sophia-Script/releases"
+				Start-Process -FilePath "https://github.com/farag2/Windows-10-Sophia-Script/releases/latest"
 				exit
 			}
 		}
@@ -89,16 +93,6 @@ function Checkings
 	# Unblock all files in the folder by removing the Zone.Identifier alternate data stream with a value of "3"
 	# Разблокировать все файлы в папке, удалив альтернативный потоки данных Zone.Identifier со значением "3"
 	Get-ChildItem -Path $PSScriptRoot -Recurse -Force | Unblock-File -Confirm:$false
-
-	# Import PowerShell 5.1 modules
-	# Импорт модулей PowerShell 5.1
-	switch ($PSVersionTable.PSVersion.Major)
-	{
-		"7"
-		{
-			Import-Module -Name Microsoft.PowerShell.Management, PackageManagement, Appx -UseWindowsPowerShell
-		}
-	}
 
 	# Turn off Controlled folder access to let the script proceed
 	# Отключить контролируемый доступ к папкам
@@ -279,18 +273,7 @@ function DiagnosticDataLevel
 	{
 		"Minimal"
 		{
-			if (Get-WindowsEdition -Online | Where-Object -FilterScript {$_.Edition -like "Enterprise*" -or $_.Edition -eq "Education"})
-			{
-				# Optional diagnostic data
-				# Необязательные диагностические данные
-				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 0 -Force
-			}
-			else
-			{
-				# Required diagnostic data
-				# Обязательные диагностические данные
-				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 1 -Force
-			}
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 0 -Force
 		}
 		"Default"
 		{
@@ -937,410 +920,6 @@ function ShareAcrossDevices
 		}
 	}
 }
-
-<#
-	.SYNOPSIS
-	Hide/show the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
-	Не показывать/показывать экран приветствия Windows после обновлений и иногда при входе, чтобы сообщить о новых функциях и предложениях
-
-	.PARAMETER Hide
-	Hide the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
-	Не показывать экран приветствия Windows после обновлений и иногда при входе, чтобы сообщить о новых функциях и предложениях
-
-	.PARAMETER Show
-	Show the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
-	Показывать экран приветствия Windows после обновлений и иногда при входе, чтобы сообщить о новых функциях и предложениях
-
-	.EXAMPLE
-	WindowsWelcomeExperience -Hide
-
-	.EXAMPLE
-	WindowsWelcomeExperience -Show
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function WindowsWelcomeExperience
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Show"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-310093Enabled -PropertyType DWord -Value 1 -Force
-		}
-		"Hide"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-310093Enabled -PropertyType DWord -Value 0 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Get/do not get tip, trick, and suggestions as you use Windows
-	Получать/не получать советы, подсказки и рекомендации при использованию Windows
-
-	.PARAMETER Disable
-	Do not get tip, trick, and suggestions as you use Windows
-	Не получать советы, подсказки и рекомендации при использованию Windows
-
-	.PARAMETER Enable
-	Get tip, trick, and suggestions as you use Windows
-	Получать советы, подсказки и рекомендации при использованию Windows
-
-	.EXAMPLE
-	WindowsTips -Disable
-
-	.EXAMPLE
-	WindowsTips -Enable
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function WindowsTips
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 1 -Force
-		}
-		"Disable"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 0 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Hide/show suggested content in the Settings app
-	Скрывать/показывать рекомендуемое содержимое в приложении "Параметры"
-
-	.PARAMETER Hide
-	Hide suggested content in the Settings app
-	Скрывать рекомендуемое содержимое в приложении "Параметры"
-
-	.PARAMETER Show
-	Show suggested content in the Settings app
-	Показывать рекомендуемое содержимое в приложении "Параметры"
-
-	.EXAMPLE
-	SettingsSuggestedContent -Hide
-
-	.EXAMPLE
-	SettingsSuggestedContent -Show
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function SettingsSuggestedContent
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Show"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 1 -Force
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 1 -Force
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 1 -Force
-		}
-		"Hide"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 0 -Force
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 0 -Force
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 0 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Turn off/turn on automatic installing suggested apps
-	Отключить/включить автоматическую установку рекомендованных приложений
-
-	.PARAMETER Disable
-	Turn off automatic installing suggested apps
-	Отключить автоматическую установку рекомендованных приложений
-
-	.PARAMETER Enable
-	Turn on automatic installing suggested apps
-	Включить автоматическую установку рекомендованных приложений
-
-	.EXAMPLE
-	AppsSilentInstalling -Disable
-
-	.EXAMPLE
-	AppsSilentInstalling -Enable
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function AppsSilentInstalling
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 1 -Force
-		}
-		"Disable"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 0 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Do not suggest/suggest ways I can finish setting up my device to get the most out of Windows
-	Не предлагать/предлагать способы завершения настройки устройства для максимально эффективного использования Windows
-
-	.PARAMETER Disable
-	Do not suggest ways I can finish setting up my device to get the most out of Windows
-	Не предлагать способы завершения настройки устройства для максимально эффективного использования Windows
-
-	.PARAMETER Enable
-	Suggest ways I can finish setting up my device to get the most out of Windows
-	Предлагать способы завершения настройки устройства для максимально эффективного использования Windows
-
-	.EXAMPLE
-	WhatsNewInWindows -Disable
-
-	.EXAMPLE
-	WhatsNewInWindows -Enable
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function WhatsNewInWindows
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			if (-not (Test-Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement))
-			{
-				New-Item -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Force
-			}
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 1 -Force
-		}
-		"Disable"
-		{
-			if (-not (Test-Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement))
-			{
-				New-Item -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Force
-			}
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 0 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Do not offer/offer tailored experiences based on the diagnostic data setting
-	Не предлагать/предлагать персонализированные возможности, основанные на выбранном параметре диагностических данных
-
-	.PARAMETER Disable
-	Do not offer tailored experiences based on the diagnostic data setting
-	Не предлагать персонализированные возможности, основанные на выбранном параметре диагностических данных
-
-	.PARAMETER Enable
-	Offer tailored experiences based on the diagnostic data setting
-	Предлагать персонализированные возможности, основанные на выбранном параметре диагностических данных
-
-	.EXAMPLE
-	TailoredExperiences -Disable
-
-	.EXAMPLE
-	TailoredExperiences -Enable
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function TailoredExperiences
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 1 -Force
-		}
-		"Disable"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 0 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Disable/enable Bing search in the Start Menu (for the USA only)
-	Отключить/включить поиск через Bing в меню "Пуск" (только для США)
-
-	.PARAMETER Disable
-	Disable Bing search in the Start Menu (for the USA only)
-	Отключить поиск через Bing в меню "Пуск" (только для США)
-
-	.PARAMETER Enable
-	Enable Bing search in the Start Menu (for the USA only)
-	Включить поиск через Bing в меню "Пуск" (только для США)
-
-	.EXAMPLE
-	BingSearch -Disable
-
-	.EXAMPLE
-	BingSearch -Enable
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function BingSearch
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			if ((Get-WinHomeLocation).GeoId -eq 244)
-			{
-				Remove-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Force -ErrorAction SilentlyContinue
-			}
-		}
-		"Disable"
-		{
-			if (-not (Test-Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer))
-			{
-				New-Item -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Force
-			}
-			New-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -PropertyType DWord -Value 1 -Force
-		}
-	}
-}
 #endregion Privacy & Telemetry
 
 #region UI & Personalization
@@ -1390,6 +969,10 @@ function ThisPC
 	{
 		"Show"
 		{
+			if (-not (Test-Path -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel))
+			{
+				New-Item -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Force
+			}
 			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -PropertyType DWord -Value 0 -Force
 		}
 		"Hide"
@@ -1670,116 +1253,6 @@ function OpenFileExplorerTo
 		"QuickAccess"
 		{
 			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 2 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Hide/show Cortana button on the taskbar
-	Скрывать/показать кнопку Кортаны на панели задач
-
-	.PARAMETER Hide
-	Show Cortana button on the taskbar
-	Показать кнопку Кортаны на панели задач
-
-	.PARAMETER Show
-	Hide Cortana button on the taskbar
-	Скрывать кнопку Кортаны на панели задач
-
-	.EXAMPLE
-	CortanaButton -Hide
-
-	.EXAMPLE
-	CortanaButton -Show
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function CortanaButton
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowCortanaButton -PropertyType DWord -Value 0 -Force
-		}
-		"Show"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowCortanaButton -PropertyType DWord -Value 1 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Do not show/show sync provider notification within File Explorer
-	Не показывать/показывать уведомления поставщика синхронизации в проводнике
-
-	.PARAMETER Hide
-	Do not show sync provider notification within File Explorer
-	Не показывать уведомления поставщика синхронизации в проводнике
-
-	.PARAMETER Show
-	Show sync provider notification within File Explorer
-	Показывать уведомления поставщика синхронизации в проводнике
-
-	.EXAMPLE
-	OneDriveFileExplorerAd -Hide
-
-	.EXAMPLE
-	OneDriveFileExplorerAd -Show
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function OneDriveFileExplorerAd
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSyncProviderNotifications -PropertyType DWord -Value 0 -Force
-		}
-		"Show"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSyncProviderNotifications -PropertyType DWord -Value 1 -Force
 		}
 	}
 }
@@ -2490,61 +1963,6 @@ function TaskbarSearch
 
 <#
 	.SYNOPSIS
-	Hide/show the "Windows Ink Workspace" button on the taskbar
-	Скрывать/показать кнопку Windows Ink Workspace на панели задач
-
-	.PARAMETER Show
-	Show recently used files in Quick access
-	Показывать недавно использовавшиеся файлы на панели быстрого доступа
-
-	.PARAMETER Hide
-	Hide recently used files in Quick access
-	Скрывать недавно использовавшиеся файлы на панели быстрого доступа
-
-	.EXAMPLE
-	WindowsInkWorkspace -Show
-
-	.EXAMPLE
-	WindowsInkWorkspace -Hide
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function WindowsInkWorkspace
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PenWorkspace -Name PenWorkspaceButtonDesiredVisibility -PropertyType DWord -Value 0 -Force
-		}
-		"Show"
-		{
-			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PenWorkspace -Name PenWorkspaceButtonDesiredVisibility -PropertyType DWord -Value 1 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
 	Always show/hide all icons in the notification area
 	Всегда отображать/скрывать все значки в области уведомлений
 
@@ -2596,50 +2014,6 @@ function TrayIcons
 			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name EnableAutoTray -PropertyType DWord -Value 0 -Force
 		}
 	}
-}
-
-<#
-	.SYNOPSIS
-	Unpin "Microsoft Edge" and "Microsoft Store" from the taskbar
-	Открепить Microsoft Edge и Microsoft Store от панели задач
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function UnpinTaskbarEdgeStore
-{
-	$Signature = @{
-		Namespace = "WinAPI"
-		Name = "GetStr"
-		Language = "CSharp"
-		MemberDefinition = @"
-	// https://github.com/Disassembler0/Win10-Initial-Setup-Script/issues/8#issue-227159084
-	[DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-	public static extern IntPtr GetModuleHandle(string lpModuleName);
-	[DllImport("user32.dll", CharSet = CharSet.Auto)]
-	internal static extern int LoadString(IntPtr hInstance, uint uID, StringBuilder lpBuffer, int nBufferMax);
-	public static string GetString(uint strId)
-	{
-		IntPtr intPtr = GetModuleHandle("shell32.dll");
-		StringBuilder sb = new StringBuilder(255);
-		LoadString(intPtr, strId, sb, sb.Capacity);
-		return sb.ToString();
-	}
-"@
-	}
-	if (-not ("WinAPI.GetStr" -as [type]))
-	{
-		Add-Type @Signature -Using System.Text
-	}
-
-	# Extract the "Unpin from taskbar" string from shell32.dll
-	# Извлечь строку "Открепить от панели задач" из shell32.dll
-	$LocalizedString = [WinAPI.GetStr]::GetString(5387)
-
-	$Apps = (New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items()
-	[void]{$Apps | Where-Object -FilterScript {$_.Path -eq "MSEdge"} | ForEach-Object -Process {$_.Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()}}}
-	[void]{$Apps | Where-Object -FilterScript {$_.Name -eq "Microsoft Store"} | ForEach-Object -Process {$_.Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()}}}
 }
 
 <#
@@ -3293,181 +2667,6 @@ function AppsLanguageSwitch
 }
 #endregion UI & Personalization
 
-#region OneDrive
-<#
-	.SYNOPSIS
-	Uninstall/install OneDrive
-	Удалить/установить OneDrive
-
-	.PARAMETER Uninstall
-	Uninstall OneDrive
-	Удалить OneDrive
-
-	.PARAMETER Install
-	Install OneDrive
-	Установить OneDrive
-
-	.EXAMPLE
-	OneDrive -Uninstall
-
-	.EXAMPLE
-	OneDrive -Install
-#>
-function OneDrive
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Uninstall"
-		)]
-		[switch]
-		$Uninstall,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Install"
-		)]
-		[switch]
-		$Install
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Uninstall"
-		{
-			[string]$UninstallString = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -ErrorAction Ignore | ForEach-Object -Process {$_.Meta.Attributes["UninstallString"]}
-			if ($UninstallString)
-			{
-				Write-Verbose -Message $Localization.OneDriveUninstalling -Verbose
-				Stop-Process -Name OneDrive -Force -ErrorAction Ignore
-				Stop-Process -Name OneDriveSetup -Force -ErrorAction Ignore
-				Stop-Process -Name FileCoAuth -Force -ErrorAction Ignore
-
-				# Getting link to the OneDriveSetup.exe and its' argument(s)
-				# Получаем ссылку на OneDriveSetup.exe и его аргумент(ы)
-				[string[]]$OneDriveSetup = ($UninstallString -Replace("\s*/",",/")).Split(",").Trim()
-				if ($OneDriveSetup.Count -eq 2)
-				{
-					Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..1] -Wait
-				}
-				else
-				{
-					Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..2] -Wait
-				}
-
-				# Getting the OneDrive user folder path
-				# Получаем путь до папки пользователя OneDrive
-				$OneDriveUserFolder = Get-ItemPropertyValue -Path HKCU:\Environment -Name OneDrive
-				if ((Get-ChildItem -Path $OneDriveUserFolder | Measure-Object).Count -eq 0)
-				{
-					Remove-Item -Path $OneDriveUserFolder -Recurse -Force
-				}
-				else
-				{
-					Write-Error -Message ($Localization.OneDriveNotEmptyFolder -f $OneDriveUserFolder) -ErrorAction SilentlyContinue
-
-					Invoke-Item -Path $OneDriveUserFolder
-				}
-
-				Remove-ItemProperty -Path HKCU:\Environment -Name OneDrive, OneDriveConsumer -Force -ErrorAction Ignore
-				Remove-Item -Path HKCU:\SOFTWARE\Microsoft\OneDrive -Recurse -Force -ErrorAction Ignore
-				Remove-Item -Path HKLM:\SOFTWARE\WOW6432Node\Microsoft\OneDrive -Recurse -Force -ErrorAction Ignore
-				Remove-Item -Path "$env:ProgramData\Microsoft OneDrive" -Recurse -Force -ErrorAction Ignore
-				Remove-Item -Path $env:SystemDrive\OneDriveTemp -Recurse -Force -ErrorAction Ignore
-				Unregister-ScheduledTask -TaskName *OneDrive* -Confirm:$false
-
-				# Getting the OneDrive folder path
-				# Получаем путь до папки OneDrive
-				$OneDriveFolder = Split-Path -Path (Split-Path -Path $OneDriveSetup[0] -Parent)
-
-				# Save all opened folders in order to restore them after File Explorer restarting
-				# Сохранить все открытые папки, чтобы восстановить их после перезапуска проводника
-				Clear-Variable -Name OpenedFolders -Force -ErrorAction Ignore
-				$OpenedFolders = {(New-Object -ComObject Shell.Application).Windows() | ForEach-Object -Process {$_.Document.Folder.Self.Path}}.Invoke()
-
-				# Terminate File Explorer process
-				# Завершить процесс проводника
-				TASKKILL /F /IM explorer.exe
-
-				# Attempt to unregister FileSyncShell64.dll and remove
-				# Попытка разрегистрировать FileSyncShell64.dll и удалить
-				$FileSyncShell64dlls = Get-ChildItem -Path "$OneDriveFolder\*\amd64\FileSyncShell64.dll" -Force
-				foreach ($FileSyncShell64dll in $FileSyncShell64dlls.FullName)
-				{
-					Start-Process -FilePath regsvr32.exe -ArgumentList "/u /s $FileSyncShell64dll" -Wait
-					Remove-Item -Path $FileSyncShell64dll -Force -ErrorAction Ignore
-
-					if (Test-Path -Path $FileSyncShell64dll)
-					{
-						Write-Error -Message ($Localization.OneDriveFileSyncShell64dllBlocked -f $FileSyncShell64dll) -ErrorAction SilentlyContinue
-					}
-				}
-
-				# Restoring closed folders
-				# Восстановляем закрытые папки
-				Start-Process -FilePath explorer
-				foreach ($OpenedFolder in $OpenedFolders)
-				{
-					if (Test-Path -Path $OpenedFolder)
-					{
-						Invoke-Item -Path $OpenedFolder
-					}
-				}
-
-				Remove-Item -Path $OneDriveFolder -Recurse -Force -ErrorAction Ignore
-				Remove-Item -Path $env:LOCALAPPDATA\OneDrive -Recurse -Force -ErrorAction Ignore
-				Remove-Item -Path $env:LOCALAPPDATA\Microsoft\OneDrive -Recurse -Force -ErrorAction Ignore
-				Remove-Item -Path "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\OneDrive.lnk" -Force -ErrorAction Ignore
-			}
-		}
-		"Install"
-		{
-			$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
-			if (-not $OneDrive)
-			{
-				if (Test-Path -Path $env:SystemRoot\SysWOW64\OneDriveSetup.exe)
-				{
-					Write-Verbose -Message $Localization.OneDriveInstalling -Verbose
-					Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe
-				}
-				else
-				{
-					# Downloading the latest OneDrive
-					# Скачивание последней версии OneDrive
-					try
-					{
-						if ((Invoke-WebRequest -Uri https://www.google.com -UseBasicParsing -DisableKeepAlive -Method Head).StatusDescription)
-						{
-							Write-Verbose -Message $Localization.OneDriveDownloading -Verbose
-
-							[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-							$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-							$Parameters = @{
-								Uri = "https://go.microsoft.com/fwlink/p/?LinkID=2121808"
-								OutFile = "$DownloadsFolder\OneDriveSetup.exe"
-								Verbose = [switch]::Present
-							}
-							Invoke-WebRequest @Parameters
-
-							Start-Process -FilePath "$DownloadsFolder\OneDriveSetup.exe"
-						}
-					}
-					catch [System.Net.WebException]
-					{
-						Write-Warning -Message $Localization.NoInternetConnection
-						Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-						return
-					}
-				}
-
-				Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask
-			}
-		}
-	}
-}
-#endregion OneDrive
-
 #region System
 #region StorageSense
 <#
@@ -3830,10 +3029,6 @@ function TempFolder
 			{
 				New-Item -Path $env:SystemDrive\Temp -ItemType Directory -Force
 			}
-
-			# Copy all imported module folders to the new temp folder. Only when using the function within PowerShell 7.x
-			# Скопировать все папки импортированных модулей в новое расположение временных файлов. Только при использовании функции в рамках PowerShell 7.x
-			Get-ChildItem -Path $env:LOCALAPPDATA\Temp -Force | Where-Object -FilterScript {$_.Name -like "*remoteIpMoProxy*"} | ForEach-Object -Process {Copy-Item $_.FullName -Destination $env:SystemDrive\Temp -Recurse -Force}
 
 			Remove-Item -Path $env:SystemRoot\Temp -Recurse -Force -ErrorAction Ignore
 			Get-Item -Path $env:LOCALAPPDATA\Temp -Force -ErrorAction Ignore | Where-Object -FilterScript {$_.LinkType -ne "SymbolicLink"} | Remove-Item -Recurse -Force -ErrorAction Ignore
@@ -4200,7 +3395,6 @@ function DeliveryOptimization
 		"Disable"
 		{
 			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 0 -Force
-			Delete-DeliveryOptimizationCache -Force
 		}
 		"Enable"
 		{
@@ -4653,19 +3847,9 @@ function WindowsCapabilities
 	# The following FODv2 items will have their checkboxes checked
 	# Следующие дополнительные компоненты будут иметь чекбоксы отмеченными
 	[string[]]$CheckedCapabilities = @(
-		# Steps Recorder
-		# Средство записи действий
-		"App.StepsRecorder*",
-
 		# Microsoft Quick Assist
 		# Быстрая поддержка (Майкрософт)
-		"App.Support.QuickAssist*",
-
-		# Microsoft Paint
-		"Microsoft.Windows.MSPaint*",
-
-		# WordPad
-		"Microsoft.Windows.WordPad*"
+		"App.Support.QuickAssist*"
 	)
 
 	# The following FODv2 items will have their checkboxes unchecked
@@ -4709,19 +3893,7 @@ function WindowsCapabilities
 
 		# Mail, contacts, and calendar sync component
 		# Компонент синхронизации почты, контактов и календаря
-		"OneCoreUAP.OneSync*",
-
-		# Windows PowerShell Intergrated Scripting Enviroment
-		# Интегрированная среда сценариев Windows PowerShell
-		"Microsoft.Windows.PowerShell.ISE*",
-
-		# Management of printers, printer drivers, and printer servers
-		# Управление принтерами, драйверами принтеров и принт-серверами
-		"Print.Management.Console*",
-
-		# Features critical to Windows functionality
-		# Компоненты, критичные для работоспособности Windows
-		"Windows.Client.ShellComponents*"
+		"OneCoreUAP.OneSync*"
 	)
 	#endregion Variables
 
@@ -4997,106 +4169,6 @@ function UpdateMicrosoftProducts
 		"Enable"
 		{
 			(New-Object -ComObject Microsoft.Update.ServiceManager).AddService2("7971f918-a847-4430-9279-4a52d1efe18d", 7, "")
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Do not let/let UWP apps run in the background
-	Не разрешать/разрешать UWP-приложениям работать в фоновом режиме
-
-	.PARAMETER Disable
-	Do not let UWP apps run in the background, except those are saved in $ExcludedBackgroundApps variable
-	Не разрешать UWP-приложениям работать в фоновом режиме, кроме тех, что сохранены в переменной $ExcludedBackgroundApps
-
-	.PARAMETER Enable
-	Let all UWP apps run in the background
-	Разрешать всем UWP-приложениям работать в фоновом режиме
-
-	.EXAMPLE
-	BackgroundUWPApps -Disable
-
-	.EXAMPLE
-	BackgroundUWPApps -Enable
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function BackgroundUWPApps
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			Get-ChildItem -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications | ForEach-Object -Process {
-				Remove-ItemProperty -Path $_.PsPath -Name * -Force
-			}
-
-			$ExcludedBackgroundApps = @(
-				# Lock screen app
-				# Экран блокировки
-				"Microsoft.LockApp",
-
-				# Content Delivery Manager (delivers Windows Spotlight wallpapers to the lock screen)
-				# Content Delivery Manager (доставляет обои для Windows Spotlight на экран блокировки)
-				"Microsoft.Windows.ContentDeliveryManager",
-
-				# Cortana
-				"Microsoft.Windows.Cortana",
-
-				# Windows Search
-				"Microsoft.Windows.Search",
-
-				# Windows Security
-				# Безопасность Windows
-				"Microsoft.Windows.SecHealthUI",
-
-				# Windows Shell Experience (Action center, snipping support, toast notification, touch screen keyboard)
-				# Windows Shell Experience (Центр уведомлений, приложение "Ножницы", тостовые уведомления, сенсорная клавиатура)
-				"Microsoft.Windows.ShellExperienceHost",
-
-				# The Start menu
-				# Меню "Пуск"
-				"Microsoft.Windows.StartMenuExperienceHost",
-
-				# Microsoft Store
-				"Microsoft.WindowsStore"
-			)
-			$OFS = "|"
-			Get-ChildItem -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications | Where-Object -FilterScript {$_.PSChildName -notmatch "^$($ExcludedBackgroundApps.ForEach({[regex]::Escape($_)}))"} | ForEach-Object -Process {
-				New-ItemProperty -Path $_.PsPath -Name Disabled -PropertyType DWord -Value 1 -Force
-				New-ItemProperty -Path $_.PsPath -Name DisabledByUser -PropertyType DWord -Value 1 -Force
-			}
-			$OFS = " "
-
-			# Open "Background apps" page
-			# Открыть раздел "Фоновые приложения"
-			Start-Process -FilePath ms-settings:privacy-backgroundapps
-		}
-		"Enable"
-		{
-			Get-ChildItem -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications | ForEach-Object -Process {
-				Remove-ItemProperty -Path $_.PsPath -Name * -Force
-			}
 		}
 	}
 }
@@ -6274,76 +5346,6 @@ function WinPrtScrFolder
 
 <#
 	.SYNOPSIS
-	Run troubleshooters automatically, then notify
-	Автоматически запускать средства устранения неполадок, а затем уведомлять
-
-	Ask me before running troubleshooters
-	Спрашивать перед запуском средств устранения неполадок
-
-	.PARAMETER Automatic
-	Run troubleshooters automatically, then notify
-	Автоматически запускать средства устранения неполадок, а затем уведомлять
-
-	.PARAMETER Default
-	Ask me before running troubleshooters
-	Спрашивать перед запуском средств устранения неполадок
-
-	.EXAMPLE
-	RecommendedTroubleshooting -Automatic
-
-	.EXAMPLE
-	RecommendedTroubleshooting -Default
-
-	.NOTES
-	In order this feature to work the OS level of diagnostic data gathering must be set to "Optional diagnostic data"
-	Необходимо установить уровень сбора диагностических сведений ОС на "Необязательные диагностические данные", чтобы работала данная функция
-#>
-function RecommendedTroubleshooting
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Automatic"
-		)]
-		[switch]
-		$Automatic,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Default"
-		)]
-		[switch]
-		$Default
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Automatic"
-		{
-			if (-not (Test-Path -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation))
-			{
-				New-Item -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Force
-			}
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 3 -Force
-		}
-		"Default"
-		{
-			if (-not (Test-Path -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation))
-			{
-				New-Item -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Force
-			}
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 2 -Force
-		}
-	}
-
-	# Set the OS level of diagnostic data gathering to "Optional diagnostic data"
-	# Установить уровень сбора диагностических сведений ОС на "Необязательные диагностические данные"
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 3 -Force
-}
-
-<#
-	.SYNOPSIS
 	Launch/do not launch folder windows in a separate process
 	Запускать/не запускать окна с папками в отдельном процессе
 
@@ -6393,64 +5395,6 @@ function FoldersLaunchSeparateProcess
 		"Disable"
 		{
 			New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SeparateProcess -PropertyType DWord -Value 0 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Disable and delete/enable reserved storage after the next update installation
-	Отключить и удалить/включить зарезервированное хранилище после следующей установки обновлений
-
-	.PARAMETER Enable
-	Enable reserved storage after the next update installation
-	Включить зарезервированное хранилище после следующей установки обновлений
-
-	.PARAMETER Disable
-	Disable and delete reserved storage after the next update installation
-	Отключить и удалить зарезервированное хранилище после следующей установки обновлений
-
-	.EXAMPLE
-	ReservedStorage -Enable
-
-	.EXAMPLE
-	ReservedStorage -Disable
-#>
-function ReservedStorage
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Set-WindowsReservedStorageState -State Enabled
-		}
-		"Disable"
-		{
-			try
-			{
-				Set-WindowsReservedStorageState -State Disabled
-			}
-			catch [System.Runtime.InteropServices.COMException]
-			{
-				Write-Error -Message $Localization.ReservedStorageIsInUse -ErrorAction SilentlyContinue
-			}
 		}
 	}
 }
@@ -6783,61 +5727,6 @@ function ThumbnailCacheRemoval
 
 <#
 	.SYNOPSIS
-	Enable/disable automatically saving my restartable apps when signing out and restart them after signing in
-	Включить/отключить автоматическое сохранение моих перезапускаемых приложений при выходе из системы и перезапускать их после выхода
-
-	.PARAMETER Enable
-	Enable automatically saving my restartable apps when signing out and restart them after signing in
-	Включить автоматическое сохранение моих перезапускаемых приложений при выходе из системы и перезапускать их после выхода
-
-	.PARAMETER Disable
-	Disable automatically saving my restartable apps when signing out and restart them after signing in
-	Отключить автоматическое сохранение моих перезапускаемых приложений при выходе из системы и перезапускать их после выхода
-
-	.EXAMPLE
-	SaveRestartableApps -Enable
-
-	.EXAMPLE
-	SaveRestartableApps -Disable
-
-	.NOTES
-	Current user only
-	Только для текущего пользователя
-#>
-function SaveRestartableApps
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			New-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name RestartApps -Value 1 -Force
-		}
-		"Disable"
-		{
-			New-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name RestartApps -Value 0 -Force
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
 	Enable/disable "Network Discovery" and "File and Printers Sharing" for workgroup networks
 	Включить/отключить сетевое обнаружение и общий доступ к файлам и принтерам для рабочих групп
 
@@ -6956,195 +5845,7 @@ function SmartActiveHours
 		}
 	}
 }
-
-<#
-	.SYNOPSIS
-	Enable/disable restarting this device as soon as possible when a restart is required to install an update
-	Включить/отключить перезапуск этого устройства как можно быстрее, если для установки обновления требуется перезагрузка
-
-	.PARAMETER Enable
-	Enable restarting this device as soon as possible when a restart is required to install an update
-	Включить перезапуск этого устройства как можно быстрее, если для установки обновления требуется перезагрузка
-
-	.PARAMETER Disable
-	Disable restarting this device as soon as possible when a restart is required to install an update
-	Отключить перезапуск этого устройства как можно быстрее, если для установки обновления требуется перезагрузка
-
-	.EXAMPLE
-	DeviceRestartAfterUpdate -Enable
-
-	.EXAMPLE
-	DeviceRestartAfterUpdate -Disable
-#>
-function DeviceRestartAfterUpdate
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsExpedited -PropertyType DWord -Value 1 -Force
-		}
-		"Disable"
-		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsExpedited -PropertyType DWord -Value 0 -Force
-		}
-	}
-}
 #endregion System
-
-#region WSL
-<#
-	.SYNOPSIS
-	Install/uninstall the Windows Subsystem for Linux (WSL)
-	Установить/удалить подсистему Windows для Linux (WSL)
-
-	.PARAMETER Enable
-	Install the Windows Subsystem for Linux (WSL)
-	Установить подсистему Windows для Linux (WSL)
-
-	.PARAMETER Disable
-	Uninstall the Windows Subsystem for Linux (WSL)
-	Удалить подсистему Windows для Linux (WSL)
-
-	.EXAMPLE
-	WSL -Enable
-
-	.EXAMPLE
-	WSL -Disable
-#>
-function WSL
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	$WSLFeatures = @(
-		# Windows Subsystem for Linux
-		# Подсистема Windows для Linux
-		"Microsoft-Windows-Subsystem-Linux",
-
-		# Virtual Machine Platform
-		# Поддержка платформы для виртуальных машин
-		"VirtualMachinePlatform"
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Enable-WindowsOptionalFeature -Online -FeatureName $WSLFeatures -NoRestart
-
-			Write-Warning -Message $Localization.RestartWarning
-		}
-		"Disable"
-		{
-			Disable-WindowsOptionalFeature -Online -FeatureName $WSLFeatures -NoRestart
-
-			Uninstall-Package -Name "Windows Subsystem for Linux Update" -Force -ErrorAction SilentlyContinue
-			Remove-Item -Path "$env:USERPROFILE\.wslconfig" -Force -ErrorAction Ignore
-
-			Write-Warning -Message $Localization.RestartWarning
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Download, install the Linux kernel update package and set WSL 2 as the default version when installing a new Linux distribution
-	Скачать, установить пакет обновления ядра Linux и установить WSL 2 как версию по умолчанию при установке нового дистрибутива Linux
-
-	.NOTES
-	To receive kernel updates, enable the Windows Update setting: "Receive updates for other Microsoft products when you update Windows"
-	Чтобы получать обновления ядра, включите параметр Центра обновления Windows: "Получение обновлений для других продуктов Майкрософт при обновлении Windows"
-#>
-function EnableWSL2
-{
-	$WSLFeatures = @(
-		# Windows Subsystem for Linux
-		# Подсистема Windows для Linux
-		"Microsoft-Windows-Subsystem-Linux",
-
-		# Virtual Machine Platform
-		# Поддержка платформы для виртуальных машин
-		"VirtualMachinePlatform"
-	)
-	$WSLFeaturesDisabled = Get-WindowsOptionalFeature -Online | Where-Object {($_.FeatureName -in $WSLFeatures) -and ($_.State -eq "Disabled")}
-
-	if ($null -eq $WSLFeaturesDisabled)
-	{
-		if ((Get-Package -Name "Windows Subsystem for Linux Update" -ProviderName msi -Force -ErrorAction Ignore).Status -ne "Installed")
-		{
-			# Downloading and installing the Linux kernel update package
-			# Скачивание и установка пакета обновления ядра Linux
-			try
-			{
-				if ((Invoke-WebRequest -Uri https://www.google.com -UseBasicParsing -DisableKeepAlive -Method Head).StatusDescription)
-				{
-					Write-Verbose -Message $Localization.WSLUpdateDownloading -Verbose
-
-					[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-					$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-					$Parameters = @{
-						Uri = "https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi"
-						OutFile = "$DownloadsFolder\wsl_update_x64.msi"
-						Verbose = [switch]::Present
-					}
-					Invoke-WebRequest @Parameters
-
-					Write-Verbose -Message $Localization.WSLUpdateInstalling -Verbose
-					Start-Process -FilePath "$DownloadsFolder\wsl_update_x64.msi" -ArgumentList "/passive" -Wait
-
-					Remove-Item -Path "$DownloadsFolder\wsl_update_x64.msi" -Force
-
-					Write-Warning -Message $Localization.RestartWarning
-				}
-			}
-			catch [System.Net.WebException]
-			{
-				Write-Warning -Message $Localization.NoInternetConnection
-				Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-				return
-			}
-		}
-		else
-		{
-			# Set WSL 2 as the default architecture when installing a new Linux distribution
-			# Установить WSL 2 как архитектуру по умолчанию при установке нового дистрибутива Linux
-			wsl --set-default-version 2
-		}
-	}
-}
-#endregion WSL
 
 #region Start menu
 <#
@@ -7295,573 +5996,19 @@ function RunCMDShortcut
 	{
 		"Elevated"
 		{
-			[byte[]]$bytes = Get-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -AsByteStream -Raw
+			[byte[]]$bytes = Get-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Encoding Byte -Raw
 			$bytes[0x15] = $bytes[0x15] -bor 0x20
-			Set-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Value $bytes -AsByteStream -Force
+			Set-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Value $bytes -Encoding Byte -Force
 		}
 		"NonElevated"
 		{
-			[byte[]]$bytes = Get-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -AsByteStream -Raw
+			[byte[]]$bytes = Get-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Encoding Byte -Raw
 			$bytes[0x15] = $bytes[0x15] -bxor 0x20
-			Set-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Value $bytes -AsByteStream -Force
+			Set-Content -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" -Value $bytes -Encoding Byte -Force
 		}
 	}
-}
-
-# Unpin all the Start tiles
-# Открепить все ярлыки от начального экрана
-function UnpinAllStartTiles
-{
-	$StartMenuLayout = @"
-<LayoutModificationTemplate xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout" Version="1" xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification">
-<LayoutOptions StartTileGroupCellWidth="6" />
-	<DefaultLayoutOverride>
-		<StartLayoutCollection>
-			<defaultlayout:StartLayout GroupCellWidth="6" />
-		</StartLayoutCollection>
-	</DefaultLayoutOverride>
-</LayoutModificationTemplate>
-"@
-	$StartMenuLayoutPath = "$env:TEMP\StartMenuLayout.xml"
-	# Saving StartMenuLayout.xml in UTF-8 encoding
-	# Сохраняем StartMenuLayout.xml в кодировке UTF-8
-	Set-Content -Path $StartMenuLayoutPath -Value $StartMenuLayout -Encoding utf8 -Force
-
-	# Temporarily disable changing the Start menu layout
-	# Временно выключаем возможность редактировать начальный экран меню "Пуск"
-	if (-not (Test-Path -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer))
-	{
-		New-Item -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Force
-	}
-	New-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name LockedStartLayout -Value 1 -Force
-	New-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name StartLayoutFile -Value $StartMenuLayoutPath -Force
-
-	# Restart the Start menu
-	# Перезапустить меню "Пуск"
-	Stop-Process -Name StartMenuExperienceHost -Force -ErrorAction Ignore
-	Start-Sleep -Seconds 3
-
-	Remove-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name LockedStartLayout -Force -ErrorAction Ignore
-	Remove-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name StartLayoutFile -Force -ErrorAction Ignore
-
-	Stop-Process -Name StartMenuExperienceHost -Force -ErrorAction Ignore
-	Get-Item -Path $StartMenuLayoutPath | Remove-Item -Force -ErrorAction Ignore
-}
-
-<#
-	.SYNOPSIS
-	Extract string from shell32.dll using its' number
-	Извлечь строку из shell32.dll, зная ее номер
-
-	.EXAMPLE
-	[WinAPI.GetStr]::GetString(12712)
-#>
-function GetLocalizedString
-{
-	$Signature = @{
-		Namespace = "WinAPI"
-		Name = "GetStr"
-		Language = "CSharp"
-		MemberDefinition = @"
-// https://github.com/Disassembler0/Win10-Initial-Setup-Script/issues/8#issue-227159084
-[DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-public static extern IntPtr GetModuleHandle(string lpModuleName);
-[DllImport("user32.dll", CharSet = CharSet.Auto)]
-internal static extern int LoadString(IntPtr hInstance, uint uID, StringBuilder lpBuffer, int nBufferMax);
-public static string GetString(uint strId)
-{
-	IntPtr intPtr = GetModuleHandle("shell32.dll");
-	StringBuilder sb = new StringBuilder(255);
-	LoadString(intPtr, strId, sb, sb.Capacity);
-	return sb.ToString();
-}
-"@
-	}
-	if (-not ("WinAPI.GetStr" -as [type]))
-	{
-		Add-Type @Signature -Using System.Text
-	}
-}
-
-<#
-	.SYNOPSIS
-	Pin the "Control Panel" shortcut to Start within syspin
-	Закрепить ярлык "Панели управления" на начальном экране с помощью syspin
-
-	.EXAMPLE
-	PinControlPanel
-#>
-function PinControlPanel
-{
-	# Extract the "Control Panel" string from shell32.dll
-	# Извлечь строку "Панель управления" из shell32.dll
-	GetLocalizedString
-	$ControlPanel = [WinAPI.GetStr]::GetString(12712)
-
-	Write-Verbose -Message ($Localization.ShortcutPinning -f $ControlPanel) -Verbose
-
-	# Check whether the Control Panel shortcut was ever pinned
-	# Проверка: закреплялся ли когда-нибудь ярлык панели управления
-	if (Test-Path -Path "$env:APPDATA\Microsoft\Windows\Start menu\Programs\$ControlPanel.lnk")
-	{
-		$Arguments = @"
-	"$env:APPDATA\Microsoft\Windows\Start menu\Programs\$ControlPanel.lnk" "51201"
-"@
-		Start-Process -FilePath $PSScriptRoot\syspin.exe -WindowStyle Hidden -ArgumentList $Arguments -Wait
-	}
-	else
-	{
-		# The "Pin" verb is not available on the control.exe file so the shortcut has to be created
-		# Глагол "Закрепить на начальном экране" недоступен для control.exe, поэтому необходимо создать ярлык
-		$Shell = New-Object -ComObject Wscript.Shell
-		$Shortcut = $Shell.CreateShortcut("$env:SystemRoot\System32\$ControlPanel.lnk")
-		$Shortcut.TargetPath = "control"
-		$Shortcut.Save()
-
-		$Arguments = @"
-	"$env:SystemRoot\System32\$ControlPanel.lnk" "51201"
-"@
-		Start-Process -FilePath $PSScriptRoot\syspin.exe -WindowStyle Hidden -ArgumentList $Arguments -Wait
-
-		Remove-Item -Path "$env:SystemRoot\System32\$ControlPanel.lnk" -Force -ErrorAction Ignore
-	}
-}
-
-<#
-	.SYNOPSIS
-	Pin the old-style "Devices and Printers" shortcut to Start within syspin
-	Закрепить ярлык старого формата "Устройства и принтеры" на начальном экране с помощью syspin
-
-	.EXAMPLE
-	PinDevicesPrinters
-#>
-function PinDevicesPrinters
-{
-	# Extract the "Devices and Printers" string from shell32.dll
-	# Извлечь строку "Устройства и принтеры" из shell32.dll
-	GetLocalizedString
-	$DevicesPrinters = [WinAPI.GetStr]::GetString(30493)
-
-	Write-Verbose -Message ($Localization.ShortcutPinning -f $DevicesPrinters) -Verbose
-
-	$Shell = New-Object -ComObject Wscript.Shell
-	$Shortcut = $Shell.CreateShortcut("$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\$DevicesPrinters.lnk")
-	$Shortcut.TargetPath = "control"
-	$Shortcut.Arguments = "printers"
-	$Shortcut.IconLocation = "$env:SystemRoot\system32\DeviceCenter.dll"
-	$Shortcut.Save()
-
-	# Pause for 3 sec, unless the "Devices and Printers" shortcut won't displayed in the Start menu
-	# Пауза на 3 с, иначе ярлык "Устройства и принтеры" не будет отображаться в меню "Пуск"
-	Start-Sleep -Seconds 3
-
-	$Arguments = @"
-	"$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\$DevicesPrinters.lnk" "51201"
-"@
-	Start-Process -FilePath $PSScriptRoot\syspin.exe -WindowStyle Hidden -ArgumentList $Arguments -Wait
-}
-
-<#
-	.SYNOPSIS
-	Pin the "Command Prompt" shortcut to Start within syspin
-	Закрепить ярлык "Командная строка" на начальном экране с помощью syspin
-
-	.EXAMPLE
-	PinCommandPrompt
-#>
-function PinCommandPrompt
-{
-	# Extract the "Command Prompt" string from shell32.dll
-	# Извлечь строку "Командная строка" из shell32.dll
-	GetLocalizedString
-	$CommandPrompt = [WinAPI.GetStr]::GetString(22022)
-
-	Write-Verbose -Message ($Localization.ShortcutPinning -f $CommandPrompt) -Verbose
-
-	$Arguments = @"
-	"$env:APPDATA\Microsoft\Windows\Start menu\Programs\System Tools\Command Prompt.lnk" "51201"
-"@
-	Start-Process -FilePath $PSScriptRoot\syspin.exe -WindowStyle Hidden -ArgumentList $Arguments -Wait
 }
 #endregion Start menu
-
-#region UWP apps
-<#
-	.SYNOPSIS
-	Uninstall UWP apps
-	Удалить UWP-приложения
-
-	.DESCRIPTION
-	Add UWP apps packages names to the $UncheckedAppXPackages array list by retrieving their packages names using the following command:
-		(Get-AppxPackage -PackageTypeFilter Bundle -AllUsers).Name
-
-	Добавьте имена пакетов UWP-приложений в массив $UncheckedAppXPackages, получив названия их пакетов с помощью команды:
-		(Get-AppxPackage -PackageTypeFilter Bundle -AllUsers).Name
-
-	App packages will not be installed for new users if the "Uninstall for All Users" box is checked
-	Приложения не будут установлены для новых пользователе, если отмечено "Удалять для всех пользователей"
-
-	.NOTES
-	A pop-up dialog box enables the user to select packages
-	Используется всплывающее диалоговое окно, позволяющее пользователю отмечать пакеты
-
-	Current user only
-	Только для текущего пользователя
-
-	Made by https://github.com/oz-zo
-#>
-function UninstallUWPApps
-{
-	Add-Type -AssemblyName PresentationCore, PresentationFramework
-
-	#region Variables
-	# ArrayList containing the UWP apps to remove
-	# Массив имен UWP-приложений для удаления
-	$AppxPackages = New-Object -TypeName System.Collections.ArrayList($null)
-
-	# List of UWP apps that won't be recommended for removal
-	# UWP-приложения, которые не будут отмечены на удаление по умолчанию
-	$UncheckedAppxPackages = @(
-		# AMD Radeon UWP panel
-		# UWP-панель AMD Radeon
-		"AdvancedMicroDevicesInc*",
-
-		# Intel Graphics Control Center
-		# UWP-панель Intel
-		"AppUp.IntelGraphicsControlPanel",
-		"AppUp.IntelGraphicsExperience",
-
-		# Sticky Notes
-		# Записки
-		"Microsoft.MicrosoftStickyNotes",
-
-		# Screen Sketch
-		# Набросок на фрагменте экрана
-		"Microsoft.ScreenSketch",
-
-		# Photos (and Video Editor)
-		# Фотографии и Видеоредактор
-		"Microsoft.Windows.Photos",
-		"Microsoft.Photos.MediaEngineDLC",
-
-		# Calculator
-		# Калькулятор
-		"Microsoft.WindowsCalculator",
-
-		# Xbox Identity Provider
-		# Поставщик удостоверений Xbox
-		"Microsoft.XboxIdentityProvider",
-
-		# Xbox
-		# Компаньон консоли Xbox
-		"Microsoft.XboxApp",
-
-		# Xbox (beta version)
-		# Xbox (бета-версия)
-		"Microsoft.GamingApp",
-		"Microsoft.GamingServices",
-
-		# Xbox TCUI
-		"Microsoft.Xbox.TCUI",
-
-		# Xbox Speech To Text Overlay
-		"Microsoft.XboxSpeechToTextOverlay",
-
-		# Xbox Game Bar
-		"Microsoft.XboxGamingOverlay",
-
-		# Xbox Game Bar Plugin
-		"Microsoft.XboxGameOverlay",
-
-		# NVIDIA Control Panel
-		# Панель управления NVidia
-		"NVIDIACorp.NVIDIAControlPanel",
-
-		# Realtek Audio Console
-		"RealtekSemiconductorCorp.RealtekAudioControl"
-	)
-
-	# The following UWP apps will be excluded from the display
-	# Следующие UWP-приложения будут исключены из отображения
-	$ExcludedAppxPackages = @(
-		# Microsoft Desktop App Installer
-		"Microsoft.DesktopAppInstaller",
-
-		# Store Experience Host
-		# Узел для покупок Microsoft Store
-		"Microsoft.StorePurchaseApp",
-
-		# Microsoft Store
-		"Microsoft.WindowsStore",
-
-		# Web Media Extensions
-		# Расширения для интернет-мультимедиа
-		"Microsoft.WebMediaExtensions"
-	)
-	#endregion Variables
-
-	#region XAML Markup
-	[xml]$XAML = '
-	<Window
-		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		Name="Window"
-		MinHeight="450" MinWidth="400"
-		SizeToContent="Width" WindowStartupLocation="CenterScreen"
-		TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
-		FontFamily="Segoe UI" FontSize="12" ShowInTaskbar="False">
-		<Window.Resources>
-			<Style TargetType="StackPanel">
-				<Setter Property="Orientation" Value="Horizontal"/>
-			</Style>
-			<Style TargetType="CheckBox">
-				<Setter Property="Margin" Value="10, 10, 5, 10"/>
-				<Setter Property="IsChecked" Value="True"/>
-			</Style>
-			<Style TargetType="TextBlock">
-				<Setter Property="Margin" Value="5, 10, 10, 10"/>
-			</Style>
-			<Style TargetType="Button">
-				<Setter Property="Margin" Value="20"/>
-				<Setter Property="Padding" Value="10"/>
-			</Style>
-		</Window.Resources>
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="*"/>
-				<RowDefinition Height="Auto"/>
-			</Grid.RowDefinitions>
-			<Grid Grid.Row="0">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="Auto"/>
-				</Grid.ColumnDefinitions>
-				<StackPanel Grid.Column="1" Orientation="Horizontal">
-					<CheckBox Name="CheckboxRemoveAll" IsChecked="False"/>
-					<TextBlock Name="TextblockRemoveAll"/>
-				</StackPanel>
-			</Grid>
-			<ScrollViewer Name="Scroll" Grid.Row="1"
-				HorizontalScrollBarVisibility="Disabled"
-				VerticalScrollBarVisibility="Auto">
-				<StackPanel Name="PanelContainer" Orientation="Vertical"/>
-			</ScrollViewer>
-			<Button Name="Button" Grid.Row="2"/>
-		</Grid>
-	</Window>
-	'
-	#endregion XAML Markup
-
-	$Reader = (New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML)
-	$Form = [Windows.Markup.XamlReader]::Load($Reader)
-	$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
-		Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name) -Scope Global
-	}
-
-	#region Functions
-	function Get-CheckboxClicked
-	{
-		[CmdletBinding()]
-		param
-		(
-			[Parameter(
-				Mandatory = $true,
-				ValueFromPipeline = $true
-			)]
-			[ValidateNotNull()]
-			$CheckBox
-		)
-
-		$AppxName = $CheckBox.Parent.Children[1].Text
-		if ($CheckBox.IsChecked)
-		{
-			[void]$AppxPackages.Add($AppxName)
-		}
-		else
-		{
-			[void]$AppxPackages.Remove($AppxName)
-		}
-		if ($AppxPackages.Count -gt 0)
-		{
-			$Button.IsEnabled = $true
-		}
-		else
-		{
-			$Button.IsEnabled = $false
-		}
-	}
-
-	function UninstallButton
-	{
-		Write-Verbose -Message $Localization.Patient -Verbose
-
-		[void]$Window.Close()
-		$OFS = "|"
-		if ($CheckboxRemoveAll.IsChecked)
-		{
-			Get-AppxPackage -PackageTypeFilter Bundle -AllUsers | Where-Object -FilterScript {$_.Name -cmatch $AppxPackages} | Remove-AppxPackage -AllUsers -Verbose
-		}
-		else
-		{
-			Get-AppxPackage -PackageTypeFilter Bundle | Where-Object -FilterScript {$_.Name -cmatch $AppxPackages} | Remove-AppxPackage -Verbose
-		}
-		$OFS = " "
-	}
-
-	function Add-AppxControl
-	{
-		[CmdletBinding()]
-		param
-		(
-			[Parameter(
-				Mandatory = $true,
-				ValueFromPipeline = $true
-			)]
-			[ValidateNotNull()]
-			[string]
-			$AppxName
-		)
-
-		$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
-		$CheckBox.Add_Click({Get-CheckboxClicked -CheckBox $_.Source})
-
-		$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
-		$TextBlock.Text = $AppxName
-
-		$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
-		[void]$StackPanel.Children.Add($CheckBox)
-		[void]$StackPanel.Children.Add($TextBlock)
-
-		[void]$PanelContainer.Children.Add($StackPanel)
-
-		if ($UncheckedAppxPackages.Contains($AppxName))
-		{
-			$CheckBox.IsChecked = $false
-			# Exit function, item is not checked
-			# Выход из функции, если элемент не выделен
-			return
-		}
-
-		# If package checked, add to the array list to uninstall
-		# Если пакет выделен, то добавить в массив для удаления
-		[void]$AppxPackages.Add($AppxName)
-	}
-	#endregion Functions
-
-	#region Events Handlers
-	# Window Loaded Event
-	$Window.Add_Loaded({
-		$OFS = "|"
-		Get-AppxPackage -PackageTypeFilter Bundle -AllUsers | Where-Object -FilterScript {$_.Name -cnotmatch $ExcludedAppxPackages} | ForEach-Object -Process {
-			Add-AppxControl -AppxName $_.Name
-		}
-		$OFS = " "
-	})
-
-	# Button Click Event
-	$Button.Add_Click({UninstallButton})
-	#endregion Events Handlers
-
-	if (Get-AppxPackage -PackageTypeFilter Bundle -AllUsers | Where-Object -FilterScript {$_.Name -cnotmatch ($ExcludedAppxPackages -join "|")})
-	{
-		Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
-
-		$TextblockRemoveAll.Text = $Localization.UninstallUWPForAll
-		$Window.Title = $Localization.UninstallUWPTitle
-		$Button.Content = $Localization.Uninstall
-
-		# Display the dialog box
-		# Отобразить диалоговое окно
-		$Form.ShowDialog() | Out-Null
-	}
-	else
-	{
-		Write-Verbose -Message $Localization.NoData -Verbose
-	}
-}
-
-<#
-	Open Microsoft Store "HEVC Video Extensions from Device Manufacturer" page to install this extension manually to be able to open .heic and .heif image formats
-	The extension can be installed without Microsoft account
-
-	Открыть страницу "Расширения для видео HEVC от производителя устройства" в Microsoft Store, чтобы вручную установить расширение и открывать изображения в форматах .heic и .heif
-	Расширение может быть установлено бесплатно без учетной записи Microsoft
-#>
-function InstallHEIF
-{
-	Start-Process -FilePath ms-windows-store://pdp/?ProductId=9n4wgh0z6vhq
-}
-
-<#
-	.SYNOPSIS
-	Disable/enable Cortana autostarting
-	Отключить/включить автозагрузку Кортана
-
-	.PARAMETER Disable
-	Enable Cortana autostarting
-	Включить автозагрузку Кортана
-
-	.PARAMETER Enable
-	Disable Cortana autostarting
-	Отключить автозагрузку Кортана
-
-	.EXAMPLE
-	CortanaAutostart -Disable
-
-	.EXAMPLE
-	CortanaAutostart -Enable
-#>
-function CortanaAutostart
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			if (Get-AppxPackage -Name Microsoft.549981C3F5F10)
-			{
-				if (-not (Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId"))
-				{
-					New-Item -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Force
-				}
-				New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 1 -Force
-			}
-		}
-		"Enable"
-		{
-			if (Get-AppxPackage -Name Microsoft.549981C3F5F10)
-			{
-				Remove-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -Force -ErrorAction SilentlyContinue
-			}
-		}
-	}
-}
-
-# Check for UWP apps updates
-# Проверить обновления UWP-приложений
-function CheckUWPAppsUpdates
-{
-	Write-Verbose -Message $Localization.Patient -Verbose
-	Get-CimInstance -Namespace "Root\cimv2\mdm\dmmap" -ClassName "MDM_EnterpriseModernAppManagement_AppManagement01" | Invoke-CimMethod -MethodName UpdateScanMethod
-}
-#endregion UWP apps
 
 #region Gaming
 <#
@@ -8033,78 +6180,6 @@ function SetAppGraphicsPerformance
 			}
 		}
 		until ($Result -eq 1)
-	}
-}
-
-<#
-	.SYNOPSIS
-	Enable/disable hardware-accelerated GPU scheduling
-	Включить/отключить планирование графического процессора с аппаратным ускорением
-
-	.PARAMETER Disable
-	Disable hardware-accelerated GPU scheduling
-	Отключить планирование графического процессора с аппаратным ускорением
-
-	.PARAMETER Enable
-	Enable hardware-accelerated GPU scheduling
-	Включить планирование графического процессора с аппаратным ускорением
-
-	.EXAMPLE
-	GPUScheduling -Disable
-
-	.EXAMPLE
-	GPUScheduling -Enable
-
-	.NOTES
-	Only with a dedicated GPU and WDDM verion is 2.7 or higher
-	Restart needed
-
-	Только при наличии внешней видеокарты и WDDM версии 2.7 и выше
-	Необходима перезагрузка
-#>
-function GPUScheduling
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name HwSchMode -PropertyType DWord -Value 1 -Force
-		}
-		"Enable"
-		{
-			if ((Get-CimInstance -ClassName CIM_VideoController | Where-Object -FilterScript {$_.AdapterDACType -ne "Internal"}))
-			{
-				# Determining whether an OS is not installed on a virtual machine
-				# Проверяем, не установлена ли ОС на виртуальной машине
-				if ((Get-CimInstance -ClassName CIM_ComputerSystem).Model -notmatch "Virtual")
-				{
-					# Checking whether a WDDM verion is 2.7 or higher
-					# Проверка: имеет ли WDDM версию 2.7 или выше
-					$WddmVersion_Min = Get-ItemPropertyValue -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers\FeatureSetUsage -Name WddmVersion_Min
-					if ($WddmVersion_Min -ge 2700)
-					{
-						New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name HwSchMode -PropertyType DWord -Value 2 -Force
-					}
-				}
-			}
-		}
 	}
 }
 #endregion Gaming
@@ -8349,7 +6424,7 @@ function SoftwareDistributionTask
 Get-ChildItem -Path $env:SystemRoot\SoftwareDistribution\Download -Recurse -Force | Remove-Item -Recurse -Force
 "@
 			$Action = New-ScheduledTaskAction -Execute powershell.exe -Argument $Argument
-			$Trigger = New-ScheduledTaskTrigger -Daily -DaysInterval 90 -At 9am
+			$Trigger = New-JobTrigger -Weekly -WeeksInterval 4 -DaysOfWeek Thursday -At 9am
 			$Settings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable
 			$Principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -RunLevel Highest
 			$Description = $Localization.FolderTaskDescription -f "$env:SystemRoot\SoftwareDistribution\Download"
@@ -8442,7 +6517,7 @@ function TempTask
 }
 #endregion Scheduled tasks
 
-#region Microsoft Defender & Security
+#region Windows Defender & Security
 # Enable Controlled folder access and add protected folders
 # Включить контролируемый доступ к папкам и добавить защищенные папки
 function AddProtectedFolders
@@ -9032,7 +7107,7 @@ function EventViewerCustomView
 
 			# Saving ProcessCreation.xml in UTF-8 encoding
 			# Сохраняем ProcessCreation.xml в кодировке UTF-8
-			Set-Content -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Value $XML -Encoding utf8 -Force
+			Set-Content -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Value $XML -Force
 		}
 	}
 }
@@ -9419,7 +7494,7 @@ function WindowsSandbox
 		}
 	}
 }
-#endregion Microsoft Defender & Security
+#endregion Windows Defender & Security
 
 #region Context menu
 <#
@@ -9753,177 +7828,6 @@ function EditWithPaint3DContext
 			foreach ($Extension in $Extensions)
 			{
 				Remove-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\SystemFileAssociations\$Extension\Shell\3D Edit" -Name ProgrammaticAccessOnly -Force -ErrorAction SilentlyContinue
-			}
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Hide/show the "Edit with Photos" item from the context menu
-	Отобразить/скрыть пункт "Изменить с помощью приложения "Фотографии"" из контекстного меню
-
-	.PARAMETER Hide
-	Hide the "Edit with Photos" item from the context menu
-	Скрыть пункт "Изменить с помощью приложения "Фотографии"" из контекстного меню
-
-	.PARAMETER Show
-	Show the "Edit with Photos" item from the context menu
-	Отобразить пункт "Изменить с помощью приложения "Фотографии"" из контекстного меню
-
-	.EXAMPLE
-	EditWithPhotosContext -Hide
-
-	.EXAMPLE
-	EditWithPhotosContext -Show
-#>
-function EditWithPhotosContext
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			if (Get-AppxPackage -Name Microsoft.Windows.Photos)
-			{
-				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppX43hnxtbyyps62jhe9sqpdzxn1790zetc\Shell\ShellEdit -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force
-			}
-		}
-		"Show"
-		{
-			if (Get-AppxPackage -Name Microsoft.Windows.Photos)
-			{
-				Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppX43hnxtbyyps62jhe9sqpdzxn1790zetc\Shell\ShellEdit -Name ProgrammaticAccessOnly -Force -ErrorAction SilentlyContinue
-			}
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Hide/show the "Create a new video" item from the context menu
-	Отобразить/скрыть пункт "Создать новое видео" из контекстного меню
-
-	.PARAMETER Hide
-	Hide the "Create a new video" item from the context menu
-	Скрыть пункт "Создать новое видео" из контекстного меню
-
-	.PARAMETER Show
-	Show the "Create a new video" item from the context menu
-	Отобразить пункт "Создать новое видео" из контекстного меню
-
-	.EXAMPLE
-	CreateANewVideoContext -Hide
-
-	.EXAMPLE
-	CreateANewVideoContext -Show
-#>
-function CreateANewVideoContext
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			if (Get-AppxPackage -Name Microsoft.Windows.Photos)
-			{
-				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppX43hnxtbyyps62jhe9sqpdzxn1790zetc\Shell\ShellCreateVideo -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force
-			}
-		}
-		"Show"
-		{
-			if (Get-AppxPackage -Name Microsoft.Windows.Photos)
-			{
-				Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppX43hnxtbyyps62jhe9sqpdzxn1790zetc\Shell\ShellCreateVideo -Name ProgrammaticAccessOnly -Force -ErrorAction SilentlyContinue
-			}
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Hide/show the "Edit" item from the images context menu
-	Отобразить/скрыть пункт "Изменить" из контекстного меню изображений
-
-	.PARAMETER Hide
-	Hide the "Edit" item from the images context menu
-	Скрыть пункт "Изменить" из контекстного меню изображений
-
-	.PARAMETER Show
-	Show the "Edit" item from the images context menu
-	Отобразить пункт "Изменить" из контекстного меню изображений
-
-	.EXAMPLE
-	ImagesEditContext -Hide
-
-	.EXAMPLE
-	ImagesEditContext -Show
-#>
-function ImagesEditContext
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			if ((Get-WindowsCapability -Online -Name "Microsoft.Windows.MSPaint*").State -eq "Installed")
-			{
-				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\SystemFileAssociations\image\shell\edit -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force
-			}
-		}
-		"Show"
-		{
-			if ((Get-WindowsCapability -Online -Name "Microsoft.Windows.MSPaint*").State -eq "Installed")
-			{
-				Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\SystemFileAssociations\image\shell\edit -Name ProgrammaticAccessOnly -Force -ErrorAction SilentlyContinue
 			}
 		}
 	}

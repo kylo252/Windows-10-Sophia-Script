@@ -5,18 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 5.3.2 - 16.01.2020
+## 5.4.0.1 - 06.02.2021
 
-## Windows 10 2004 (20H1)/20H2 (2009)/LTSC
+## Windows 10 2004 (20H1)/20H2 (2009)
 
-Diff from v5.3
+Diff from v5.4
+[5.4...5.4.0.1](https://github.com/farag2/Windows-10-Sophia-Script/compare/5.4...5.4.0.1)
+
+* Fixed UWP apps form not loading.
+
+## 5.4 - 04.02.2021
+
+## Windows 10 2004 (20H1)/20H2 (2009) | LTSC
+
+Diff from v5.3.3
+[5.3.3...5.4](https://github.com/farag2/Windows-10-Sophia-Script/compare/5.3.3...5.4)
+
+* Now all archives are being created and uploaded to the release page via [GitHub Actions](https://github.com/farag2/Windows-10-Sophia-Script/blob/master/.github/workflows/Sophia.yml);
+  * Thnx to @inv2004
+* When running the script using ```.\Sophia.ps1 -Functions "FunctionName1 -Parameter"``` regardless of the functions entered as an argument, the ```Checkings``` function will be executed first, and the ```Refresh``` and ```Errors``` functions will be executed at the end;
+* Updated the ```CreateRestorePoint``` function
+  * Closed #124
+* Updated the ```EnableWSL2``` function
+* Code refactoring for the ```ScheduledTasks```, ```WindowsFeatures```, ```WindowsCapabilities``` & ```UninstallUWPApps```
+  * The ```WindowsFeatures``` function generates **friendly** Windows features names instead of packages names :rocket:
+  * The ```WindowsCapabilities``` function generates **friendly** Windows capabilities names instead of packages names :rocket:
+  * The ```UninstallUWPApps``` function generates **friendly** UWP apps names instead of packages names :rocket:
+    * Clicking on "Uninstall for all users" dynamically generates UWP apps list for all users and vice versa. Currently works only on PowerShell 5.1 :thinking:
+  * Thanks to [iNNOKENTIY21](https://forum.ru-board.com/profile.cgi?action=show&member=iNNOKENTIY21) & @oz-zo
+  * Closed #56
+* Removed unnecessary ```WSLSwap``` & ```syspin``` functions;
+* Updated description;
+* Wrapper updated;
+* Minor changes. :feelsgood:
+
+## 5.3.3 - 21.01.2021
+
+## Windows 10 2004 (20H1)/20H2 (2009) | LTSC
+
+Diff from v5.3.2
+[5.3.2...5.3.3](https://github.com/farag2/Windows-10-Sophia-Script/compare/5.3.2...5.3.3)
+
+* Added the feature to run the script by specifying module functions as parameters
+  * If you want to run the specific functions without editing the preset file you can run them as parameters now
+
+  ```powershell
+  .\Sophia.ps1 -Functions CreateRestorePoint, "ScheduledTasks -Disable", "WindowsCapabilities -Disable", Refresh
+  ```
+
+  * The quotation marks required;
+  * Thnx to [YuS 2](https://forum.ru-board.com/profile.cgi?action=show&member=YuS%202) & [iNNOKENTIY21](https://forum.ru-board.com/profile.cgi?action=show&member=iNNOKENTIY21) for spending their time.
+* Bugfixed and improved the "WindowsCapabilities" function. Thnx to [cheetoh](https://forums.mydigitallife.net/members/cheetoh.977530)
+* There is a bug in KVM with QEMU: enabling the ```DefenderSandbox -Enabled``` function causes VM to freeze up during the loading phase of Windows
+  * Read more on #120
+* The ```MediaPlayback``` feature in the ```WindowsFeatures``` function is unchecked now by default. Thnx to [Nevals](https://forums.mydigitallife.net/members/nevals.1442013)
+  * If you want to leave "Multimedia settings" in the advanced settings of Power Options do not uninstall this feature
+* Updated description;
+* Minor changes. :feelsgood:
+
+## 5.3.2 - 16.01.2021
+
+## Windows 10 2004 (20H1)/20H2 (2009) | LTSC
+
+Diff from v5.3.1
 [5.3.1...5.3.2](https://github.com/farag2/Windows-10-Sophia-Script/compare/5.3.1...5.3.2)
 
 * Updated "TelemetryService" function
   * Renamed into "DiagTrackService";
   * Added "Disable firewall rule for Unified Telemetry Client Outbound Traffic and block connection" feature.
     * Closed #116
-    * To do it manually run
+    * To do it run manually
 
     ```powershell
     Get-NetFirewallRule -Group DiagTrack | Set-NetFirewallRule -Enabled False -Action Block
@@ -47,7 +105,6 @@ Diff from v5.3
 * Updated syspin app up to the 0.99.9.1;
 * Minor changes. :feelsgood:
 * Added the New Year ```easter egg``` to the console title! :hand_over_mouth:
-* It's the latest release this year. :hugs: Happy New Year! ![Image](https://forum.ru-board.com/board/s/deds.gif)
 
 ## 5.3 - 12.12.2020
 

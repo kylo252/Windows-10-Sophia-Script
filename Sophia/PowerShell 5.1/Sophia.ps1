@@ -1,4 +1,4 @@
-<#
+﻿<#
 	.SYNOPSIS
 	Default preset file for "Windows 10 Sophia Script"
 
@@ -35,7 +35,7 @@
 #>
 
 #Requires -RunAsAdministrator
-#Requires -Version 7.1
+#Requires -Version 5.1
 
 [CmdletBinding()]
 param

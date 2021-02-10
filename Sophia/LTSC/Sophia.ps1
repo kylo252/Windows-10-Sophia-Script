@@ -1,17 +1,17 @@
-<#
+﻿<#
 	.SYNOPSIS
-	Default preset file for "Windows 10 Sophia Script"
+	Default preset file for "Windows 10 Sophia Script" (LTSC version)
 
-	Version: v5.4.0.1
-	Date: 06.02.2021
-	Copyright (c) 2015–2021 farag & oZ-Zo
+	Version: v5.0.3
+	Date: 04.02.2021
+	Copyright (c) 2021 farag & oZ-Zo
 
 	Thanks to all https://forum.ru-board.com members involved
 
 	.DESCRIPTION
-	Supported Windows 10 versions: 2004 (20H1)/20H2 (2009), 19041/19042, Home/Pro/Enterprise, x64
+	Supported Windows 10 versions: 1809 Enterprise LTSC, 17763 build, x64
 
-	Due to the fact that the script includes more than 150 functions with different arguments, you must read the entire Sophia.ps1 carefully and
+	Due to the fact that the script includes more than 120 functions with different arguments, you must read the entire Sophia.ps1 carefully and
 	comment out/uncomment those functions that you do/do not want to be executed
 	Every tweak in the preset file has its' corresponding function to restore the default settings
 
@@ -35,7 +35,7 @@
 #>
 
 #Requires -RunAsAdministrator
-#Requires -Version 7.1
+#Requires -Version 5.1
 
 [CmdletBinding()]
 param
@@ -47,7 +47,7 @@ param
 
 Clear-Host
 
-$Host.UI.RawUI.WindowTitle = "Windows 10 Sophia Script v5.4.0.1 | ©️ farag & oz-zo, 2015–2021"
+$Host.UI.RawUI.WindowTitle = "Windows 10 Sophia Script for LTSC v5.0.3 | ©️ farag & oz-zo, 2015–2021"
 
 Remove-Module -Name Sophia -Force -ErrorAction Ignore
 Import-Module -Name $PSScriptRoot\Sophia.psd1 -PassThru -Force
@@ -169,62 +169,6 @@ ShareAcrossDevices -Disable
 # Let apps on other devices open and message apps on this device, and vice versa (current user only) (default value)
 # Разрешать приложениям на других устройствах запускать приложения и отправлять сообщения на этом устройстве и наоборот (только для текущего пользователя) (значение по умолчанию)
 # ShareAcrossDevices -Enable
-
-# Hide the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested (current user only)
-# Скрывать экран приветствия Windows после обновлений и иногда при входе, чтобы сообщить о новых функциях и предложениях (только для текущего пользователя)
-WindowsWelcomeExperience -Hide
-
-# Show the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested (current user only) (default value)
-# Показывать экран приветствия Windows после обновлений и иногда при входе, чтобы сообщить о новых функциях и предложениях (только для текущего пользователя) (значение по умолчанию)
-# WindowsWelcomeExperience -Show
-
-# Get tip, trick, and suggestions as you use Windows (current user only) (default value)
-# Получать советы, подсказки и рекомендации при использованию Windows (только для текущего пользователя) (значение по умолчанию)
-WindowsTips -Enable
-
-# Do not get tip, trick, and suggestions as you use Windows (current user only)
-# Не получать советы, подсказки и рекомендации при использованию Windows (только для текущего пользователя)
-# WindowsTips -Disable
-
-# Hide suggested content in the Settings app (current user only)
-# Скрывать рекомендуемое содержимое в приложении "Параметры" (только для текущего пользователя)
-SettingsSuggestedContent -Hide
-
-# Show suggested content in the Settings app (current user only) (default value)
-# Показывать рекомендуемое содержимое в приложении "Параметры" (только для текущего пользователя) (значение по умолчанию)
-# SettingsSuggestedContent -Show
-
-# Turn off automatic installing suggested apps (current user only)
-# Отключить автоматическую установку рекомендованных приложений (только для текущего пользователя)
-AppsSilentInstalling -Disable
-
-# Turn on automatic installing suggested apps (current user only) (default value)
-# Включить автоматическую установку рекомендованных приложений (только для текущего пользователя) (значение по умолчанию)
-# AppsSilentInstalling -Enable
-
-# Do not suggest ways I can finish setting up my device to get the most out of Windows (current user only)
-# Не предлагать способы завершения настройки устройства для максимально эффективного использования Windows (только для текущего пользователя)
-WhatsNewInWindows -Disable
-
-# Suggest ways I can finish setting up my device to get the most out of Windows (default value)
-# Предлагать способы завершения настройки устройства для максимально эффективного использования Windows (значение по умолчанию)
-# WhatsNewInWindows -Enable
-
-# Do not offer tailored experiences based on the diagnostic data setting (current user only)
-# Не предлагать персонализированные возможности, основанные на выбранном параметре диагностических данных (только для текущего пользователя)
-TailoredExperiences -Disable
-
-# Offer tailored experiences based on the diagnostic data setting (default value)
-# Предлагать персонализированные возможности, основанные на выбранном параметре диагностических данных (значение по умолчанию)
-# TailoredExperiences -Enable
-
-# Disable Bing search in the Start Menu (for the USA only)
-# Отключить в меню "Пуск" поиск через Bing (только для США)
-BingSearch -Disable
-
-# Enable Bing search in the Start Menu (current user only) (default value)
-# Включить поиск через Bing в меню "Пуск" (только для текущего пользователя) (значение по умолчанию)
-# BingSearch -Enable
 #endregion Privacy & Telemetry
 
 #region UI & Personalization
@@ -275,22 +219,6 @@ OpenFileExplorerTo -ThisPC
 # Open File Explorer to: "Quick access" (current user only) (default value)
 # Открывать проводник для: "Быстрый доступ" (только для текущего пользователя) (значение по умолчанию)
 # OpenFileExplorerTo -QuickAccess
-
-# Hide Cortana button on the taskbar (current user only)
-# Скрывать кнопку Кортаны на панели задач (только для текущего пользователя)
-CortanaButton -Hide
-
-# Show Cortana button on the taskbar (current user only) (default value)
-# Показать кнопку Кортаны на панели задач (только для текущего пользователя) (значение по умолчанию)
-# CortanaButton -Show
-
-# Do not show sync provider notification within File Explorer (current user only)
-# Не показывать уведомления поставщика синхронизации в проводнике (только для текущего пользователя)
-OneDriveFileExplorerAd -Hide
-
-# Show sync provider notification within File Explorer (current user only) (default value)
-# Показывать уведомления поставщика синхронизации в проводнике (только для текущего пользователя) (значение по умолчанию)
-# OneDriveFileExplorerAd -Show
 
 # Hide Task View button on the taskbar (current user only)
 # Скрывать кнопку Просмотра задач (только для текущего пользователя)
@@ -384,14 +312,6 @@ TaskbarSearch -Hide
 # Показать поле поиска на панели задач (только для текущего пользователя) (значение по умолчанию)
 # TaskbarSearch -SearchBox
 
-# Do not show the "Windows Ink Workspace" button on the taskbar (current user only)
-# Не показывать кнопку Windows Ink Workspace на панели задач (current user only)
-WindowsInkWorkspace -Hide
-
-# Show the "Windows Ink Workspace" button in taskbar (current user only) (default value)
-# Показывать кнопку Windows Ink Workspace на панели задач (current user only) (значение по умолчанию)
-# WindowsInkWorkspace -Show
-
 # Always show all icons in the notification area (current user only)
 # Всегда отображать все значки в области уведомлений (только для текущего пользователя)
 TrayIcons -Show
@@ -399,10 +319,6 @@ TrayIcons -Show
 # Do not show all icons in the notification area (current user only) (default value)
 # Не отображать все значки в области уведомлений (только для текущего пользователя) (значение по умолчанию)
 # TrayIcons -Hide
-
-# Unpin "Microsoft Edge" and "Microsoft Store" from the taskbar (current user only)
-# Открепить Microsoft Edge и Microsoft Store от панели задач (только для текущего пользователя)
-UnpinTaskbarEdgeStore
 
 # View the Control Panel icons by: large icons (current user only)
 # Просмотр иконок Панели управления как: крупные значки (только для текущего пользователя)
@@ -492,16 +408,6 @@ AppsLanguageSwitch -Enable
 # Не позволять выбирать метод ввода для каждого окна (только для текущего пользователя) (значение по умолчанию)
 # AppsLanguageSwitch -Disable
 #endregion UI & Personalization
-
-#region OneDrive
-# Uninstall OneDrive
-# Удалить OneDrive
-OneDrive -Uninstall
-
-# Install OneDrive (current user only) (default value)
-# Установить OneDrive (только для текущего пользователя) (значение по умолчанию)
-# OneDrive -Install
-#endregion OneDrive
 
 #region System
 #region StorageSense
@@ -644,14 +550,6 @@ UpdateMicrosoftProducts -Enable
 # Не подключаться к службе Microsoft Update так, чтобы при обновлении Windows не получать обновления для других продуктов Майкрософт (значение по умолчанию)
 # UpdateMicrosoftProducts -Disable
 
-# Do not let UWP apps run in the background (current user only)
-# Не разрешать UWP-приложениям работать в фоновом режиме (только для текущего пользователя)
-BackgroundUWPApps -Disable
-
-# Let all UWP apps run in the background (current user only) (default value)
-# Разрешить всем UWP-приложениям работать в фоновом режиме (только для текущего пользователя) (значение по умолчанию)
-# BackgroundUWPApps -Enable
-
 # Set the power management scheme on "High performance" if device is a desktop
 # Установить схему управления питанием на "Высокая производительность", если устройство является стационарным ПК
 PowerManagementScheme -High
@@ -719,24 +617,6 @@ WinPrtScrFolder -Desktop
 # Cохранять скриншоты по нажатию Win+PrtScr в папку "Изображения" (только для текущего пользователя) (значение по умолчанию)
 # WinPrtScrFolder -Default
 
-<#
-	Run troubleshooters automatically, then notify
-	In order this feature to work the OS level of diagnostic data gathering must be set to "Optional diagnostic data"
-
-	Автоматически запускать средства устранения неполадок, а затем уведомлять
-	Необходимо установить уровень сбора диагностических сведений ОС на "Необязательные диагностические данные", чтобы работала данная функция
-#>
-RecommendedTroubleshooting -Automatic
-
-<#
-	Ask me before running troubleshooters (default value)
-	In order this feature to work the OS level of diagnostic data gathering must be set to "Optional diagnostic data"
-
-	Спрашивать перед запуском средств устранения неполадок (значение по умолчанию)
-	Необходимо установить уровень сбора диагностических сведений ОС на "Необязательные диагностические данные", чтобы работала данная функция
-#>
-# RecommendedTroubleshooting -Default
-
 # Launch folder windows in a separate process (current user only)
 # Запускать окна с папками в отдельном процессе (только для текущего пользователя)
 FoldersLaunchSeparateProcess -Enable
@@ -744,14 +624,6 @@ FoldersLaunchSeparateProcess -Enable
 # Do not launch folder windows in a separate process (current user only) (default value)
 # Не запускать окна с папками в отдельном процессе (только для текущего пользователя) (значение по умолчанию)
 # FoldersLaunchSeparateProcess -Disable
-
-# Disable and delete reserved storage after the next update installation
-# Отключить и удалить зарезервированное хранилище после следующей установки обновлений
-ReservedStorage -Disable
-
-# Enable reserved storage (default value)
-# Включить зарезервированное хранилище (значение по умолчанию)
-# ReservedStorage -Enable
 
 # Disable help lookup via F1 (current user only)
 # Отключить открытие справки по нажатию F1 (только для текущего пользователя)
@@ -801,14 +673,6 @@ ThumbnailCacheRemoval -Disable
 # Включить удаление кэша миниатюр (значение по умолчанию)
 # ThumbnailCacheRemoval -Enable
 
-# Enable automatically saving my restartable apps when signing out and restart them after signing in (current user only)
-# Включить автоматическое сохранение моих перезапускаемых приложений при выходе из системы и перезапускать их после выхода (только для текущего пользователя)
-SaveRestartableApps -Enable
-
-# Disable automatically saving my restartable apps when signing out and restart them after signing in (current user only) (default value)
-# Выключить автоматическое сохранение моих перезапускаемых приложений при выходе из системы и перезапускать их после выхода (только для текущего пользователя) (значение по умолчанию)
-# SaveRestartableApps -Disable
-
 # Enable "Network Discovery" and "File and Printers Sharing" for workgroup networks
 # Включить сетевое обнаружение и общий доступ к файлам и принтерам для рабочих групп
 NetworkDiscovery -Enable
@@ -824,36 +688,7 @@ SmartActiveHours -Enable
 # Do not automatically adjust active hours for me based on daily usage (default value)
 # Не изменять автоматически период активности для этого устройства на основе действий (значение по умолчанию)
 # SmartActiveHours -Disable
-
-# Restart this device as soon as possible when a restart is required to install an update
-# Перезапускать это устройство как можно быстрее, если для установки обновления требуется перезагрузка
-DeviceRestartAfterUpdate -Enable
-
-# Do not restart this device as soon as possible when a restart is required to install an update (default value)
-# Не перезапуск этого устройства как можно быстрее, если для установки обновления требуется перезагрузка (значение по умолчанию)
-# DeviceRestartAfterUpdate -Disable
 #endregion System
-
-#region WSL
-# Install the Windows Subsystem for Linux (WSL)
-# Установить подсистему Windows для Linux (WSL)
-# WSL -Enable
-
-# Uninstall the Windows Subsystem for Linux (WSL)
-# Удалить подсистему Windows для Linux (WSL)
-# WSL -Disable
-
-<#
-	Download and install the Linux kernel update package
-	Set WSL 2 as the default version when installing a new Linux distribution
-	Run the function only after WSL installed and PC restart
-
-	Скачать и установить пакет обновления ядра Linux
-	Установить WSL 2 как версию по умолчанию при установке нового дистрибутива Linux
-	Выполните функцию только после установки WSL и перезагрузка ПК
-#>
-# EnableWSL2
-#endregion WSL
 
 #region Start menu
 # Hide recently added apps in the Start menu
@@ -879,55 +714,7 @@ RunCMDShortcut -Elevated
 # Run the Command Prompt shortcut from the Start menu as user (default value)
 # Запускать ярлык командной строки в меню "Пуск" от имени пользователя (значение по умолчанию)
 # RunCMDShortcut -NonElevated
-
-# Unpin all the Start tiles
-# Открепить все ярлыки от начального экрана
-UnpinAllStartTiles
-
-# Pin the "Control Panel" shortcut to Start within the syspin app
-# Закрепить ярлык "Панели управления" на начальном экране с помощью syspin
-PinControlPanel
-
-# Pin the old-style "Devices and Printers" shortcut to Start within the syspin app
-# Закрепить ярлык старого формата "Устройства и принтеры" на начальном экране с помощью syspin
-PinDevicesPrinters
-
-# Pin the Command Prompt" shortcut to Start within the syspin app
-# Закрепить ярлык "Командная строка" на начальном экране с помощью syspin
-PinCommandPrompt
 #endregion Start menu
-
-#region UWP apps
-<#
-	Uninstall UWP apps using the pop-up dialog box
-	App packages will not be installed for new users if "Uninstall for All Users" is checked
-
-	Удалить UWP-приложения, используя всплывающее диалоговое окно
-	Приложения не будут установлены для новых пользователей, если отмечено "Удалять для всех пользователей"
-#>
-UninstallUWPApps
-
-<#
-	Open Microsoft Store "HEVC Video Extensions from Device Manufacturer" page to install this extension manually to be able to open .heic and .heif image formats
-	The extension can be installed without Microsoft account
-
-	Открыть страницу "Расширения для видео HEVC от производителя устройства" в Microsoft Store, чтобы вручную установить расширение для открытия изображений в форматах .heic и .heif
-	Расширение может быть установлено бесплатно без учетной записи Microsoft
-#>
-InstallHEIF
-
-# Disable Cortana autostarting
-# Выключить автозагрузку Кортана
-CortanaAutostart -Disable
-
-# Enable Cortana autostarting (default value)
-# Включить автозагрузку Кортана (значение по умолчанию)
-# CortanaAutostart -Enable
-
-# Check for UWP apps updates
-# Проверить обновления UWP-приложений
-CheckUWPAppsUpdates
-#endregion UWP apps
 
 #region Gaming
 # Disable Xbox Game Bar
@@ -954,19 +741,6 @@ XboxGameTips -Disable
 	Только при наличии внешней видеокарты
 #>
 SetAppGraphicsPerformance
-
-<#
-	Turn on hardware-accelerated GPU scheduling. Restart needed
-	Only with a dedicated GPU and WDDM verion is 2.7 or higher
-
-	Включить планирование графического процессора с аппаратным ускорением. Необходима перезагрузка
-	Только при наличии внешней видеокарты и WDDM версии 2.7 и выше
-#>
-GPUScheduling -Enable
-
-# Turn off hardware-accelerated GPU scheduling (default value). Restart needed
-# Выключить планирование графического процессора с аппаратным ускорением (значение по умолчанию). Необходима перезагрузка
-# GPUScheduling -Disable
 #endregion Gaming
 
 #region Scheduled tasks
@@ -1218,30 +992,6 @@ EditWithPaint3DContext -Hide
 # Show the "Edit with Paint 3D" item in the context menu (default value)
 # Показывать пункт "Изменить с помощью Paint 3D" в контекстном меню (значение по умолчанию)
 # EditWithPaint3DContext -Show
-
-# Hide the "Edit with Photos" item from the context menu
-# Скрыть пункт "Изменить с помощью приложения "Фотографии"" из контекстного меню
-EditWithPhotosContext -Hide
-
-# Show the "Edit with Photos" item in the context menu (default value)
-# Показывать пункт "Изменить с помощью приложения "Фотографии"" в контекстном меню (значение по умолчанию)
-# EditWithPhotosContext -Show
-
-# Hide the "Create a new video" item from the context menu
-# Скрыть пункт "Создать новое видео" из контекстного меню
-CreateANewVideoContext -Hide
-
-# Show the "Create a new video" item in the context menu (default value)
-# Показывать пункт "Создать новое видео" в контекстном меню (значение по умолчанию)
-# CreateANewVideoContext -Show
-
-# Hide the "Edit" item from the images context menu
-# Скрыть пункт "Изменить" из контекстного меню изображений
-ImagesEditContext -Hide
-
-# Show the "Edit" item from in images context menu (default value)
-# Показывать пункт "Изменить" в контекстном меню изображений (значение по умолчанию)
-# ImagesEditContext -Show
 
 # Hide the "Print" item from the .bat and .cmd context menu
 # Скрыть пункт "Печать" из контекстного меню .bat и .cmd файлов
