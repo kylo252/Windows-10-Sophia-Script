@@ -1,8 +1,8 @@
-<#systemprotection#>
+#region Protection
 
 CreateRestorePoint
 
-<#privacy&telemetry#>
+#region Privacy & Telemetry
 
 TelemetryService -Disable;
 DiagnosticDataLevel -Minimal;
@@ -21,7 +21,7 @@ WhatsNewInWindows -Disable;
 TailoredExperiences -Disable;
 BingSearch -Disable
 
-<#ui&personal#>
+#region UI & Personalization
 
 ThisPC -Show;
 CheckBoxes -Disable;
@@ -43,6 +43,7 @@ QuickAccessFrequentFolders -Hide;
 QuickAccessRecentFiles -Hide;
 WindowsInkWorkspace -Hide;
 TrayIcons -Show;
+MeetNow -Hide;
 UnpinTaskbarEdgeStore;
 WindowsColorScheme -Dark;
 AppMode -Dark;
@@ -55,11 +56,11 @@ ShortcutsSuffix -Disable;
 PrtScnSnippingTool -Enable;
 AppsLanguageSwitch -Disable
 
-<#onedrive#>
+#region OneDrive
 
 OneDrive -Uninstall
 
-<#system#>
+#region System
 
 StorageSense -Enable;
 StorageSenseFrequency -Month;
@@ -76,7 +77,6 @@ WindowsManageDefaultPrinter -Disable;
 WindowsFeatures -Disable;
 WindowsCapabilities -Uninstall;
 UpdateMicrosoftProducts -Enable;
-BackgroundUWPApps -Disable;
 PowerManagementScheme -High;
 LatestInstalled.NET -Enable;
 PCTurnOffDevice -Disable;
@@ -95,34 +95,37 @@ NetworkDiscovery -Enable;
 SmartActiveHours -Enable;
 DeviceRestartAfterUpdate -Enable
 
-<#start#>
+#region WSL
+
+#region Start menu
 
 RecentlyAddedApps -Hide;
 AppSuggestions -Hide;
 RunPowerShellShortcut -Elevated;
-PinToStart -Tiles ControlPanel,DevicesPrinters,PowerShell
+PinToStart -Tiles ControlPanel, DevicesPrinters, PowerShell
 
-<#uwp#>
+#region UWP apps
 
 UninstallUWPApps;
-HEIF -Install
+HEIF -Install;
 CortanaAutostart -Disable;
+BackgroundUWPApps -Disable;
 CheckUWPAppsUpdates
 
-<#gaming#>
+#region Gaming
 
 XboxGameBar -Disable;
 XboxGameTips -Disable;
 SetAppGraphicsPerformance;
 GPUScheduling -Enable
 
-<#scheduled#>
+#region Scheduled tasks
 
 CleanUpTask -Register;
 SoftwareDistributionTask -Register;
 TempTask -Register
 
-<#defender&security#>
+#region Microsoft Defender & Security
 
 AddProtectedFolders;
 AddAppControlledFolder;
@@ -143,7 +146,7 @@ SaveZoneInformation -Disable;
 WindowsScriptHost -Disable;
 WindowsSandbox -Enable
 
-<#context#>
+#region Context menu
 
 MSIExtractContext -Add;
 CABInstallContext -Add;
@@ -164,7 +167,8 @@ MultipleInvokeContext -Enable;
 UseStoreOpenWith -Hide;
 PreviousVersionsPage -Hide
 
-<#other#>
+#region Other
+
 ControlPanelView -LargeIcons;
 TaskbarSearch -Hide;
 SetUserShellFolderLocation -Root

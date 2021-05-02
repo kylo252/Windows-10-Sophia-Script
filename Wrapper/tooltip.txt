@@ -1,9 +1,9 @@
-<#systemprotection#>
+#region Protection
 
 Logging;Enable script logging. The log will be being recorded into the script folder.To stop logging just close the console or type "Stop-Transcript";
 CreateRestorePoint;Create a restore point
 
-<#privacy&telemetry#>
+#region Privacy & Telemetry
 
 DiagTrackService -Disable;Disable the DiagTrack service, firewall rule for Unified Telemetry Client Outbound Traffic and block connection;
 DiagTrackService -Enable;Enable the DiagTrack service, firewall rule for Unified Telemetry Client Outbound Traffic and allow connection (default value);
@@ -38,7 +38,7 @@ TailoredExperiences -Enable;Offer tailored experiences based on the diagnostic d
 BingSearch -Disable;Disable Bing search in the Start Menu (for the USA only);
 BingSearch -Enable;Enable Bing search in the Start Menu (default value)
 
-<#ui&personal#>
+#region UI & Personalization
 
 ThisPC -Show;Show the "This PC" icon on Desktop;
 ThisPC -Hide; Hide the "This PC" icon on Desktop (default value);
@@ -80,6 +80,8 @@ WindowsInkWorkspace -Hide;Do not show the "Windows Ink Workspace" button on the 
 WindowsInkWorkspace -Show;Show the "Windows Ink Workspace" button in taskbar (default value);
 TrayIcons -Show;Always show all icons in the notification area;
 TrayIcons -Hide;Do not show all icons in the notification area (default value);
+MeetNow -Hide;Hide the Meet Now icon in the notification area;
+MeetNow -Show;Show the Meet Now icon in the notification area (default value);
 UnpinTaskbarEdgeStore;Unpin "Microsoft Edge" and "Microsoft Store" from the taskbar;
 ControlPanelView -Category;View the Control Panel icons by: category (default value);
 ControlPanelView -LargeIcons;View the Control Panel icons by: large icons;
@@ -105,12 +107,12 @@ PrtScnSnippingTool -Disable;Do not use the PrtScn button to open screen snipping
 AppsLanguageSwitch -Disable;Let let use a different input method for each app window;
 AppsLanguageSwitch -Enable;Do not let use a different input method for each app window (default value)
 
-<#onedrive#>
+#region OneDrive
 
 OneDrive -Uninstall;Uninstall OneDrive;
 OneDrive -Install;Install OneDrive (default value)
 
-<#system#>
+#region System
 
 StorageSense -Enable;Turn on Storage Sense;
 StorageSense -Disable;Turn off Storage Sense (default value);
@@ -144,8 +146,6 @@ WindowsCapabilities -Uninstall;	Uninstall optional features using the pop-up dia
 WindowsCapabilities -Install;Install optional features using the pop-up dialog box;
 UpdateMicrosoftProducts -Enable;Receive updates for other Microsoft products when you update Windows;
 UpdateMicrosoftProducts -Disable;Do not receive updates for other Microsoft products when you update Windows (default value);
-BackgroundUWPApps -Disable;Do not let all UWP apps run in the background;
-BackgroundUWPApps -Enable;Let all UWP apps run in the background (default value);
 PowerManagementScheme -High;Set the power management scheme on "High performance";
 PowerManagementScheme -Balanced;Set the power management scheme on "Balanced" (default value);
 LatestInstalled.NET -Enable;Use latest installed .NET runtime for all apps;
@@ -153,11 +153,11 @@ LatestInstalled.NET -Disable;Do not use latest installed .NET runtime for all ap
 PCTurnOffDevice -Disable;Do not allow the computer to turn off the network adapters to save power;
 PCTurnOffDevice -Enable;Allow the computer to turn off the network adapters to save power (default value);
 SetInputMethod -English;Override for default input method: English;
-SetInputMethod -Default;Override for default input method: use langiage list (default value);
+SetInputMethod -Default;Override for default input method: use language list (default value);
 WinPrtScrFolder -Desktop;Save screenshots by pressing Win+PrtScr on the Desktop;
 WinPrtScrFolder -Default;Save screenshots by pressing Win+PrtScr on the Pictures folder (default value);
-RecommendedTroubleshooting -Automatic;Run troubleshooters automatically, then notify. In order this feature to work the OS level of diagnostic data gathering must be set to "Optional diagnostic data";
-RecommendedTroubleshooting -Default;Ask me before running troubleshooters (default value). In order this feature to work the OS level of diagnostic data gathering must be set to "Optional diagnostic data";
+RecommendedTroubleshooting -Automatic;Run troubleshooters automatically, then notify. In order this feature to work the OS level of diagnostic data gathering will be set to "Optional diagnostic data" and the error reporting feature will be turned on;
+RecommendedTroubleshooting -Default;Ask me before running troubleshooters (default value). In order this feature to work the OS level of diagnostic data gathering will be set to "Optional diagnostic data" and the error reporting feature will be turned on;
 FoldersLaunchSeparateProcess -Enable;Launch folder windows in a separate process;
 FoldersLaunchSeparateProcess -Disable;Do not launch folder windows in a separate process (default value);
 ReservedStorage -Disable;Disable and delete reserved storage after the next update installation;
@@ -181,12 +181,15 @@ NetworkDiscovery -Disable;Disable "Network Discovery" and "File and Printers Sha
 SmartActiveHours -Enable;Automatically adjust active hours for me based on daily usage;
 SmartActiveHours -Disable;Do not automatically adjust active hours for me based on daily usage (default value);
 DeviceRestartAfterUpdate -Enable;Restart this device as soon as possible when a restart is required to install an update;
-DeviceRestartAfterUpdate -Disable;Do not restart this device as soon as possible when a restart is required to install an update (default value);
-WSL -Enable;Install the Windows Subsystem for Linux (WSL). https://github.com/farag2/Windows-10-Sophia-Script/issues/43. https://github.com/microsoft/WSL/issues/5437;
-WSL -Disable;Uninstall the Windows Subsystem for Linux (WSL);
-EnableWSL2;Download and install the Linux kernel update package. Set WSL 2 as the default version when installing a new Linux distribution. Run the function only after WSL installed and PC restart. https://github.com/microsoft/WSL/issues/5437. https://github.com/farag2/Windows-10-Sophia-Script/issues/43;
+DeviceRestartAfterUpdate -Disable;Do not restart this device as soon as possible when a restart is required to install an update (default value)
 
-<#start#>
+#region WSL
+
+WSL -Enable;Install the Windows Subsystem for Linux (WSL);
+WSL -Disable;Uninstall the Windows Subsystem for Linux (WSL);
+EnableWSL2;Download and install the Linux kernel update package. Set WSL 2 as the default version when installing a new Linux distribution. Run the function only after WSL installed and PC restart;
+
+#region Start menu
 
 RecentlyAddedApps -Hide;Hide recently added apps in the Start menu;
 RecentlyAddedApps -Show;Show recently added apps in the Start menu (default value);
@@ -194,21 +197,25 @@ AppSuggestions -Hide;Hide app suggestions in the Start menu;
 AppSuggestions -Show;Show app suggestions in the Start menu (default value);
 RunPowerShellShortcut -Elevated;Run the Windows PowerShell shortcut from the Start menu as Administrator;
 RunPowerShellShortcut -NonElevated;Run the Windows PowerShell shortcut from the Start menu as user (default value);
-PinToStart -Tiles ControlPanel,DevicesPrinters,PowerShell;Pin the Control Panel, "Devices & Printers", and Windows PowerShell shortcuts to Start;
+PinToStart -Tiles ControlPanel,DevicesPrinters,PowerShell;Pin to Start the following links: Control Panel, Devices and Printers, PowerShell;
 PinToStart -Tiles ControlPanel;Pin the Control Panel shortcut shortcut to Start;
 PinToStart -Tiles DevicesPrinters;Pin the "Devices & Printers" shortcut to Start;
 PinToStart -Tiles PowerShell;Pin the Windows PowerShell shortcut to Start;
-PinToStart -UnpinAll;Unpin all the Start tiles;
+PinToStart -UnpinAll;Unpin all the Start tiles
 
-<#uwp#>
+#region UWP apps
 
-UninstallUWPApps;Uninstall UWP apps using the pop-up dialog box. App packages will not be installed for new users if "Uninstall for All Users" is checked;
+UninstallUWPApps;Uninstall UWP apps using the pop-up dialog box. If the "For All Users" is checked apps packages will not be installed for new users. The "For All Users" checkbox isn't checked by default;
+UninstallUWPApps -ForAllUsers;Uninstall UWP apps using the pop-up dialog box. If the "For All Users" is checked apps packages will not be installed for new users. The "For All Users" checkbox checked by default;
+RestoreUWPApps;Restore the default UWP apps using the pop-up dialog box. UWP apps can be restored only if they were uninstalled only for the current user;
 InstallHEIF;Open Microsoft Store "HEVC Video Extensions from Device Manufacturer" page to install this extension manually to be able to open .heic and .heif image formats. The extension can be installed without Microsoft account;
 CortanaAutostart -Disable;Disable Cortana autostarting;
 CortanaAutostart -Enable;Enable Cortana autostarting (default value);
+BackgroundUWPApps -Disable;Do not let all UWP apps run in the background;
+BackgroundUWPApps -Enable;Let all UWP apps run in the background (default value);
 CheckUWPAppsUpdates;Check for UWP apps updates
 
-<#gaming#>
+#region Gaming
 
 XboxGameBar -Disable;Disable Xbox Game Bar;
 XboxGameBar -Enable;Enable Xbox Game Bar (default value);
@@ -216,9 +223,9 @@ XboxGameTips -Disable;Disable Xbox Game Bar tips;
 XboxGameTips -Enable;Enable Xbox Game Bar tips (default value);
 SetAppGraphicsPerformance;Set "High performance" in graphics performance preference for an app. Only with a dedicated GPU;
 GPUScheduling -Enable;Turn on hardware-accelerated GPU scheduling. Restart needed. Only with a dedicated GPU and WDDM verion is 2.7 or higher;
-GPUScheduling -Disable;Turn off hardware-accelerated GPU scheduling (default value). Restart needed
+GPUScheduling -Disable;Turn off hardware-accelerated GPU scheduling (default value). Restart needed;
 
-<#scheduled#>
+#region Scheduled tasks
 
 CleanUpTask -Register;Create the "Windows Cleanup" scheduled task for cleaning up unused files and Windows updates;
 CleanUpTask -Delete;Delete the "Windows Cleanup" scheduled task for cleaning up unused files and Windows updates;
@@ -227,7 +234,7 @@ SoftwareDistributionTask -Delete;Delete the "SoftwareDistribution" scheduled tas
 TempTask -Register;Create the "Temp" scheduled task for cleaning up the %TEMP% folder;
 TempTask -Delete;Delete the "Temp" scheduled task for cleaning up the %TEMP% folder
 
-<#defender&security#>
+#region Microsoft Defender & Security
 
 AddProtectedFolders;Enable Controlled folder access and add protected folders;
 RemoveProtectedFolders;Remove all added protected folders;
@@ -264,7 +271,7 @@ WindowsScriptHost -Enable;Emable Windows Script Host (default value);
 WindowsSandbox -Enable;Enable Windows Sandbox;
 WindowsSandbox -Disable;Disable Windows Sandbox (default value)
 
-<#context#>
+#region Context menu
 
 MSIExtractContext -Add;Add the "Extract all" item to Windows Installer (.msi) context menu;
 MSIExtractContext -Remove;Remove the "Extract all" item from Windows Installer (.msi) context menu (default value);
@@ -305,8 +312,11 @@ UseStoreOpenWith -Show;Show the "Look for an app in the Microsoft Store" item in
 PreviousVersionsPage -Hide;Hide the "Previous Versions" tab from files and folders context menu and also the "Restore previous versions" context menu item;
 PreviousVersionsPage -Show;Show the "Previous Versions" tab from files and folders context menu and also the "Restore previous versions" context menu item (default value)
 
-<#other#>
+#region Other
 
+ControlPanelView -Category;View the Control Panel icons by: category (default value);
+ControlPanelView -LargeIcons;View the Control Panel icons by: large icons;
+ControlPanelView -SmallIcons;View the Control Panel icons by: small icons;
 TaskbarSearch -Hide;Hide the search box or the search icon from the taskbar;
 TaskbarSearch -SearchIcon;Show the search icon on the taskbar;
 TaskbarSearch -SearchBox;Show the search box on the taskbar (default value);

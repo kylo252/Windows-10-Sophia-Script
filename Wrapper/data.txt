@@ -1,9 +1,9 @@
-<#systemprotection#>
+#region Protection
 
 Logging;LeaveAlone;
 CreateRestorePoint;LeaveAlone
 
-<#privacy&telemetry#>
+#region Privacy & Telemetry
 
 DiagTrackService -Disable;DiagTrackService -Enable;
 DiagnosticDataLevel -Minimal;DiagnosticDataLevel -Default;
@@ -22,7 +22,7 @@ WhatsNewInWindows -Disable;WhatsNewInWindows -Enable;
 TailoredExperiences -Disable;TailoredExperiences -Enable;
 BingSearch -Disable;BingSearch -Enable
 
-<#ui&personal#>
+#region UI & Personalization
 
 ThisPC -Show;ThisPC -Hide;
 CheckBoxes -Disable;CheckBoxes -Enable;
@@ -44,6 +44,7 @@ QuickAccessFrequentFolders -Hide;QuickAccessFrequentFolders -Show;
 QuickAccessRecentFiles -Hide;QuickAccessRecentFiles -Show;
 WindowsInkWorkspace -Hide;WindowsInkWorkspace -Show;
 TrayIcons -Show;TrayIcons -Hide;
+MeetNow -Hide;MeetNow -Show;
 UnpinTaskbarEdgeStore;LeaveAlone;
 WindowsColorScheme -Dark;WindowsColorScheme -Light;
 AppMode -Dark;AppMode -Light;
@@ -56,11 +57,11 @@ ShortcutsSuffix -Disable;ShortcutsSuffix -Enable;
 PrtScnSnippingTool -Enable;PrtScnSnippingTool -Disable;
 AppsLanguageSwitch -Disable;AppsLanguageSwitch -Enable
 
-<#onedrive#>
+#region OneDrive
 
 OneDrive -Uninstall;OneDrive -Install
 
-<#system#>
+#region System
 
 StorageSense -Enable;StorageSense -Disable;
 StorageSenseFrequency -Month;StorageSenseFrequency -Default;
@@ -78,7 +79,6 @@ WindowsManageDefaultPrinter -Disable;WindowsManageDefaultPrinter -Enable;
 WindowsFeatures -Disable;WindowsFeatures -Enable;
 WindowsCapabilities -Uninstall;WindowsCapabilities -Install;
 UpdateMicrosoftProducts -Enable;UpdateMicrosoftProducts -Disable;
-BackgroundUWPApps -Disable;BackgroundUWPApps -Enable;
 PowerManagementScheme -High;PowerManagementScheme -Balanced;
 LatestInstalled.NET -Enable;LatestInstalled.NET -Disable;
 PCTurnOffDevice -Disable;PCTurnOffDevice -Enable;
@@ -96,11 +96,14 @@ ThumbnailCacheRemoval -Disable;ThumbnailCacheRemoval -Enable;
 SaveRestartableApps -Enable;SaveRestartableApps -Disable;
 NetworkDiscovery -Enable;NetworkDiscovery -Disable;
 SmartActiveHours -Enable;SmartActiveHours -Disable;
-DeviceRestartAfterUpdate -Enable;DeviceRestartAfterUpdate -Disable;
+DeviceRestartAfterUpdate -Enable;DeviceRestartAfterUpdate -Disable
+
+#region WSL
+
 WSL -Enable;WSL -Disable;
 EnableWSL2;LeaveAlone
 
-<#start#>
+#region Start menu
 
 RecentlyAddedApps -Hide;RecentlyAddedApps -Show;
 AppSuggestions -Hide;AppSuggestions -Show;
@@ -111,27 +114,29 @@ PinToStart -Tiles DevicesPrinters;LeaveAlone;
 PinToStart -Tiles PowerShell;LeaveAlone;
 PinToStart -UnpinAll;LeaveAlone
 
-<#uwp#>
+#region UWP apps
 
-UninstallUWPApps;LeaveAlone;
-HEIF -Manual;HEIF -Install
+UninstallUWPApps;LeaveAlone;UninstallUWPApps -ForAllUsers;LeaveAlone;
+RestoreUWPApps;LeaveAlone;
+HEIF -Manual;HEIF -Install;
 CortanaAutostart -Disable;CortanaAutostart -Enable;
+BackgroundUWPApps -Disable;BackgroundUWPApps -Enable;
 CheckUWPAppsUpdates;LeaveAlone
 
-<#gaming#>
+#region Gaming
 
 XboxGameBar -Disable;XboxGameBar -Enable;
 XboxGameTips -Disable;XboxGameTips -Enable;
 SetAppGraphicsPerformance;LeaveAlone;
 GPUScheduling -Enable;GPUScheduling -Disable
 
-<#scheduled#>
+#region Scheduled tasks
 
 CleanUpTask -Register;CleanUpTask -Delete;
 SoftwareDistributionTask -Register;SoftwareDistributionTask -Delete;
 TempTask -Register;TempTask -Delete
 
-<#defender&security#>
+#region Microsoft Defender & Security
 
 AddProtectedFolders;RemoveProtectedFolders;
 AddAppControlledFolder;RemoveAllowedAppsControlledFolder;
@@ -152,7 +157,7 @@ SaveZoneInformation -Disable;SaveZoneInformation -Enable;
 WindowsScriptHost -Disable;WindowsScriptHost -Enable;
 WindowsSandbox -Enable;WindowsSandbox -Disable
 
-<#context#>
+#region Context menu
 
 MSIExtractContext -Add;MSIExtractContext -Remove;
 CABInstallContext -Add;CABInstallContext -Remove;
@@ -174,7 +179,8 @@ MultipleInvokeContext -Enable;MultipleInvokeContext -Disable;
 UseStoreOpenWith -Hide;UseStoreOpenWith -Show;
 PreviousVersionsPage -Hide;PreviousVersionsPage -Show
 
-<#other#>
+#region Other
+
 ControlPanelView -Category;ControlPanelView -LargeIcons;ControlPanelView -SmallIcons;
 TaskbarSearch -Hide;TaskbarSearch -SearchIcon;TaskbarSearch -SearchBox;
 SetUserShellFolderLocation -Root;SetUserShellFolderLocation -Custom;SetUserShellFolderLocation -Default

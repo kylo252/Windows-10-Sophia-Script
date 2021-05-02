@@ -2,26 +2,43 @@
 	.SYNOPSIS
 	Default preset file for "Windows 10 Sophia Script" (LTSC version)
 
-	Version: v5.1
-	Date: 05.03.2021
-	Copyright (c) 2021 farag & oZ-Zo
+	Version: v5.2.3
+	Date: 27.04.2021
 
-	https://github.com/farag2
-	https://github.com/oz-zo
+	Copyright (c) 2014–2021 farag
+	Copyright (c) 2019–2021 farag & oZ-Zo
 
 	Thanks to all https://forum.ru-board.com members involved
 
 	.DESCRIPTION
-	Read carefully and configure the preset file before running
+	Place the "#" char before function if you don't want it to be run
+	Remove the "#" char before function if you want it to be run
 	Every tweak in the preset file has its' corresponding function to restore the default settings
 
-	Running the script is best done on a fresh install because running it on wrong tweaked system may result in errors occurring
-
-	.EXAMPLE
+	.EXAMPLE Run the whole script
 	.\Sophia.ps1
 
-	.EXAMPLE
-	.\Sophia.ps1 -Functions CreateRestorePoint, "DiagTrackService -Disable", "DiagnosticDataLevel -Minimal"
+	.EXAMPLE Run the script by specifying the module functions as an argument
+	.\Sophia.ps1 -Functions "DiagTrackService -Disable", "DiagnosticDataLevel -Minimal", UninstallUWPApps
+
+	.NOTES
+	Supported Windows 10 version
+	Version: 1809
+	Build: 17763
+	Edition: Enterprise LTSC
+	Architecture: x64
+
+	.NOTES
+	Set execution policy to be able to run scripts only in the current PowerShell session:
+		Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+
+	.NOTES
+	Running the script is best done on a fresh install because running it on wrong tweaked system may result in errors occurring
+
+	.NOTES
+	To use the TAB completion for functions and their arguments dot source the Function.ps1 script first:
+		. .\Function.ps1 (with a dot at the beginning)
+	Read more in the Functions.ps1 file
 
 	.NOTES
 	https://forum.ru-board.com/topic.cgi?forum=62&topic=30617#15
@@ -29,16 +46,13 @@
 	https://forums.mydigitallife.net/threads/powershell-windows-10-sophia-script.81675/
 	https://www.reddit.com/r/PowerShell/comments/go2n5v/powershell_script_setup_windows_10/
 
-	.NOTES
-	Supported Windows 10
-	Version: 1809
-	Build: 17763
-	Editions: Enterprise LTSC
-	Architecture: x64
+	.LINK Telegram channel & group
+	https://t.me/sophianews
+	https://t.me/sophia_chat
 
-	.NOTES
-	Set execution policy to be able to run scripts only in the current PowerShell session:
-		Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+	.LINK
+	https://github.com/farag2
+	https://github.com/Inestic
 
 	.LINK
 	https://github.com/farag2/Windows-10-Sophia-Script
@@ -57,7 +71,7 @@ param
 
 Clear-Host
 
-$Host.UI.RawUI.WindowTitle = "Windows 10 Sophia Script for LTSC v5.1 | $([char]0x00A9) farag & oz-zo, 2015–2021"
+$Host.UI.RawUI.WindowTitle = "Windows 10 Sophia Script for LTSC v5.2.3 | Made with $([char]::ConvertFromUtf32(0x1F497)) of Windows 10 | $([char]0x00A9) farag & oz-zo, 2014–2021"
 
 Remove-Module -Name Sophia -Force -ErrorAction Ignore
 Import-Module -Name $PSScriptRoot\Sophia.psd1 -PassThru -Force
@@ -66,18 +80,19 @@ Import-LocalizedData -BindingVariable Global:Localization -FileName Sophia
 
 <#
 	.SYNOPSIS
-	Adds the feature to run the script by specifying module functions as parameters
-	Добавляет возможность запускать скрипт, указывая в качестве параметров функции модуля
+	Run the script by specifying the module functions as an argument
+	Запустить скрипт, указав в качестве аргумента функции модуля
 
 	.EXAMPLE
-	.\Sophia.ps1 -Functions CreateRestorePoint, "DiagTrackService -Disable", "DiagnosticDataLevel -Minimal"
+	.\Sophia.ps1 -Functions "DiagTrackService -Disable", "DiagnosticDataLevel -Minimal", UninstallUWPApps
 
 	.NOTES
-	Regardless of the functions entered as an argument, the "Checkings" function will be executed first, and the "Refresh" and "Errors" functions will be executed at the end
-	Вне зависимости от введенных функций в качестве аргумента, сначала будет выполнена функция "Checkings", и в конце — "Refresh" и "Errors"
+	Separate functions with a comma
 #>
 if ($Functions)
 {
+	# Regardless of the functions entered as an argument, the "Checkings" function will be executed first,
+	# and the "Refresh" and "Errors" functions will be executed at the end
 	Invoke-Command -ScriptBlock {Checkings}
 
 	foreach ($Function in $Functions)
@@ -90,6 +105,7 @@ if ($Functions)
 	exit
 }
 
+#region Protection
 <#
 	Checkings
 	Please, do not touch this function
@@ -111,14 +127,15 @@ Checkings
 # Create a restore point
 # Создать точку восстановления
 CreateRestorePoint
+#endregion Protection
 
 #region Privacy & Telemetry
-# Disable the DiagTrack service, firewall rule for Unified Telemetry Client Outbound Traffic and block connection
-# Отключить службу DiagTrack, правила брандмауэра для исходящего трафик клиента единой телеметрии и заблокировать соединение
+# Disable the DiagTrack service, and block connection for the Unified Telemetry Client Outbound Traffic
+# Отключить службу DiagTrack и заблокировать соединение для исходящего трафик клиента единой телеметрии
 DiagTrackService -Disable
 
-# Enable the DiagTrack service, firewall rule for Unified Telemetry Client Outbound Traffic and allow connection
-# Включить службу DiagTrack, правила брандмауэра для исходящего трафик клиента единой телеметрии и разрешить соединение
+# Enable the DiagTrack service, and allow connection for the Unified Telemetry Client Outbound Traffic
+# Включить службу DiagTrack и разрешить соединение для исходящего трафик клиента единой телеметрии
 # DiagTrackService -Enable
 
 # Set the OS level of diagnostic data gathering to minimum
@@ -130,7 +147,7 @@ DiagnosticDataLevel -Minimal
 # DiagnosticDataLevel -Default
 
 # Turn off the Windows Error Reporting
-# Отключить отчеты об ошибках Windows
+# Отключить запись отчетов об ошибках Windows
 ErrorReporting -Disable
 
 # Turn on the Windows Error Reporting (default value)
@@ -231,7 +248,7 @@ MergeConflicts -Show
 # Открывать проводник для: "Этот компьютер"
 OpenFileExplorerTo -ThisPC
 
-# Open File Explorer to: "Quick access" (default value)
+# Open File Explorer to: Quick access (default value)
 # Открывать проводник для: "Быстрый доступ" (значение по умолчанию)
 # OpenFileExplorerTo -QuickAccess
 
@@ -264,15 +281,15 @@ SecondsInSystemClock -Show
 SnapAssist -Disable
 
 # When I snap a window, show what I can snap next to it (default value)
-# При прикреплении окна не показывать/показывать, что можно прикрепить рядом с ним (значение по умолчанию)
+# При прикреплении окна показывать, что можно прикрепить рядом с ним (значение по умолчанию)
 # SnapAssist -Enable
 
-# Always open the file transfer dialog box in the detailed mode
-# Всегда открывать диалоговое окно передачи файлов в развернутом виде
+# Show the file transfer dialog box in the detailed mode
+# Отображать диалоговое окно передачи файлов в развернутом виде
 FileTransferDialog -Detailed
 
-# Always open the file transfer dialog box in the compact mode (default value)
-# Всегда открывать диалоговое окно передачи файлов в свернутом виде (значение по умолчанию)
+# Show the file transfer dialog box in the compact mode (default value)
+# Отображать диалоговое окно передачи файлов в свернутом виде (значение по умолчанию)
 # FileTransferDialog -Compact
 
 # Expand the File Explorer ribbon
@@ -283,28 +300,28 @@ FileExplorerRibbon -Expanded
 # Свернуть ленту проводника (значение по умолчанию)
 # FileExplorerRibbon -Minimized
 
-# Display the recycle bin files delete confirmation
+# Display the recycle bin files delete confirmation dialog
 # Запрашивать подтверждение на удаление файлов в корзину
 RecycleBinDeleteConfirmation -Enable
 
-# Do not display the recycle bin files delete confirmation (default value)
+# Do not display the recycle bin files delete confirmation dialog (default value)
 # Не запрашивать подтверждение на удаление файлов в корзину (значение по умолчанию)
 # RecycleBinDeleteConfirmation -Disable
 
-# Hide the "3D Objects" folder in "This PC" and "Quick access"
+# Hide the "3D Objects" folder in "This PC" and Quick access
 # Скрыть папку "Объемные объекты" в "Этот компьютер" и панели быстрого доступа
 3DObjects -Hide
 
-# Show the "3D Objects" folder in "This PC" and "Quick access" (default value)
+# Show the "3D Objects" folder in "This PC" and Quick access (default value)
 # Отобразить папку "Объемные объекты" в "Этот компьютер" и панели быстрого доступа (значение по умолчанию)
 # 3DObjects -Show
 
-# Hide frequently used folders in "Quick access"
+# Hide frequently used folders in Quick access
 # Скрыть недавно используемые папки на панели быстрого доступа
 QuickAccessFrequentFolders -Hide
 
-# Show frequently used folders in "Quick access" (default value)
-# Показать недавно используемые папки на панели быстрого доступа (значение по умолчанию)
+# Show frequently used folders in Quick access (default value)
+# Показать часто используемые папки на панели быстрого доступа (значение по умолчанию)
 # QuickAccessFrequentFolders -Show
 
 # Do not show recently used files in Quick access
@@ -339,8 +356,12 @@ TrayIcons -Show
 # Просмотр иконок Панели управления как: крупные значки
 ControlPanelView -LargeIcons
 
+# View the Control Panel icons by: small icons
+# Просмотр иконок Панели управления как: маленькие значки
+# ControlPanelView -SmallIcons
+
 # View the Control Panel icons by: category (default value)
-# Просмотр значки Панели управления как "категория" (значение по умолчанию)
+# Просмотр иконок Панели управления как: категория (значение по умолчанию)
 # ControlPanelView -Category
 
 # Set the Windows mode color scheme to the dark
@@ -350,14 +371,6 @@ WindowsColorScheme -Dark
 # Set the Windows mode color scheme to the light
 # Установить режим цвета для Windows на светлый
 # WindowsColorScheme -Light
-
-# Set the default app mode color scheme to the dark
-# Установить цвет режима приложений по умолчанию на темный
-AppMode -Dark
-
-# Set the default app mode color scheme to the light
-# Установить цвет режима приложений по умолчанию на светлый
-# AppMode -Light
 
 # Do not show the "New App Installed" indicator
 # Не показывать уведомление "Установлено новое приложение"
@@ -593,7 +606,7 @@ PCTurnOffDevice -Disable
 # Переопределить метод ввода по умолчанию: английский
 SetInputMethod -English
 
-# Override for default input method: use langiage list (default value)
+# Override for default input method: use language list (default value)
 # Переопределить метод ввода по умолчанию: использовать список языков (значение по умолчанию)
 # SetInputMethod -Default
 
@@ -705,20 +718,14 @@ SmartActiveHours -Enable
 # SmartActiveHours -Disable
 <#
 	Register app, calculate hash, and set as default for specific extension without the "How do you want to open this?" pop-up
-	Зарегистрировать приложение, вычислить хэш и установить как приложение по умолчанию для конкретного расширения без всплывающего окошка "Каким образом вы хотите открыть этот файл?"
+	Зарегистрировать приложение, вычислить хэш и установить как приложение по умолчанию для конкретного расширения без всплывающего окна "Каким образом вы хотите открыть этот файл?"
 
 	Examples:
 	Примеры:
 	Set-Association -ProgramPath "C:\SumatraPDF.exe" -Extension .pdf -Icon "shell32.dll,100"
-	Set-Association -ProgramPath "C:\Program Files\Notepad++\notepad++.exe" -Extension .psm1 -Icon "C:\Program Files\Notepad++\notepad++.exe,0"
-
-	The app must be installed
-	Приложение должно быть установлено
-
-	Do not use relative paths like "%Program Files%"
-	Не используйте относительные пути вида "%Program Files%"
+	Set-Association -ProgramPath "%ProgramFiles%\Notepad++\notepad++.exe" -Extension .txt -Icon "%ProgramFiles%\Notepad++\notepad++.exe,0"
 #>
-# Set-Association -ProgramPath "C:\Program Files\Notepad++\notepad++.exe" -Extension .psm1 -Icon "C:\Program Files\Notepad++\notepad++.exe,0"
+# Set-Association -ProgramPath "%ProgramFiles%\Notepad++\notepad++.exe" -Extension .txt -Icon "%ProgramFiles%\Notepad++\notepad++.exe,0"
 #endregion System
 
 #region Start menu
@@ -787,14 +794,16 @@ SetAppGraphicsPerformance
 CleanupTask -Register
 
 # Delete the "Windows Cleanup" and "Windows Cleanup Notification" scheduled tasks for cleaning up Windows unused files and updates
-# Удалить задачу "Windows Cleanup" и "Windows Cleanup Notification" по очистке неиспользуемых файлов и обновлений Windows из Планировщика заданий
+# Удалить задачи "Windows Cleanup" и "Windows Cleanup Notification" по очистке неиспользуемых файлов и обновлений Windows из Планировщика заданий
 # CleanupTask -Delete
 
 <#
 	Create the "SoftwareDistribution" scheduled task for cleaning up the %SystemRoot%\SoftwareDistribution\Download folder
+	The task will wait until the Windows Updates service finishes running
 	The task runs every 90 days
 
 	Создать задачу "SoftwareDistribution" по очистке папки %SystemRoot%\SoftwareDistribution\Download в Планировщике заданий
+	Задача будет ждать, пока служба обновлений Windows не закончит работу
 	Задача выполняется каждые 90 дней
 #>
 SoftwareDistributionTask -Register
@@ -968,7 +977,7 @@ SaveZoneInformation -Disable
 
 # Enable Windows Sandbox
 # Включить Windows Sandbox
-WindowsSandbox -Enable
+# WindowsSandbox -Enable
 
 # Disable Windows Sandbox (default value)
 # Выключить Windows Sandbox (значение по умолчанию)
